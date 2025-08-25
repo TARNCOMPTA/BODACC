@@ -30,6 +30,9 @@ export class BodaccApiService {
     const sortField = filters.sort?.trim() || '-dateparution';
     params.set('sort', sortField);
     
+    // Récupération du texte de recherche
+    const qText = (filters.query || '').trim();
+    
     // 1. Recherche textuelle dans q - amélioration pour les noms d'entreprise
     if (qText) {
       // Pour une recherche plus flexible sur les noms d'entreprise
