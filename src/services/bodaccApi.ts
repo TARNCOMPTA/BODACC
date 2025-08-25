@@ -30,9 +30,6 @@ export class BodaccApiService {
     const sortField = filters.sort?.trim() || '-dateparution';
     params.set('sort', sortField);
     
-    // Récupération du texte de recherche
-    const qText = (filters.query || '').trim();
-    
     // 1. Recherche textuelle dans q - amélioration pour les noms d'entreprise
     if (qText) {
       // Pour une recherche plus flexible sur les noms d'entreprise
@@ -77,6 +74,11 @@ export class BodaccApiService {
         dateQuery = `dateparution:[* TO ${dateTo}]`;
       }
       params.set('q', `${currentQ} AND ${dateQuery}`);
+    }
+    
+    // 3. Filtres exacts avec refine.*
+    if (queryParts.length > 0) {
+      params.set('q', queryParts.join(' AND '));
     }
     
     // 3. Filtres exacts avec refine.*
