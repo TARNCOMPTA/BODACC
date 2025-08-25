@@ -30,53 +30,30 @@ export class BodaccApiService {
     const sortField = filters.sort?.trim() || '-dateparution';
     params.set('sort', sortField);
     
-    // 1. Recherche textuelle dans q - amélioration pour les noms d'entreprise
+    // 1. Recherche textuelle dans q
+    const qText = (filters.query || '').trim();
     if (qText) {
-      // Pour une recherche plus flexible sur les noms d'entreprise
-      // On recherche dans plusieurs champs : commercant, denomination, etc.
-      const searchTerms = qText.split(/\s+/).map(term => this.escapeLucene(term));
-      
-      if (searchTerms.length === 1) {
-        // Recherche simple : utiliser des wildcards pour une correspondance partielle
-        const term = searchTerms[0];
-        params.set('q', `*${term}*`);
-      } else {
-        // Recherche multi-termes : tous les termes doivent être présents
-        const multiTermQuery = searchTerms.map(term => `*${term}*`).join(' AND ');
-        params.set('q', multiTermQuery);
-      }
+      params.set('q', this.escapeLucene(qText));
     }
     
-    // 2. Filtres de dates - utiliser la syntaxe de plage dans un paramètre séparé si pas de recherche textuelle
+    // 2. Filtres de dates - utiliser la syntaxe de plage dans q
     const dateFrom = (filters.dateFrom || '').trim();
     const dateTo = (filters.dateTo || '').trim();
     
-    if ((dateFrom || dateTo) && !qText) {
-      // Si pas de recherche textuelle, utiliser q pour les dates
-      let dateQuery = '';
-      if (dateFrom && dateTo) {
-        dateQuery = `dateparution:[${dateFrom} TO ${dateTo}]`;
-      } else if (dateFrom) {
-        dateQuery = `dateparution:[${dateFrom} TO *]`;
-      } else if (dateTo) {
-        dateQuery = `dateparution:[* TO ${dateTo}]`;
-      }
-      params.set('q', dateQuery);
-    } else if ((dateFrom || dateTo) && qText) {
-      // Si recherche textuelle + dates, combiner dans q
-      const currentQ = params.get('q') || '';
-      let dateQuery = '';
-      if (dateFrom && dateTo) {
-        dateQuery = `dateparution:[${dateFrom} TO ${dateTo}]`;
-      } else if (dateFrom) {
-        dateQuery = `dateparution:[${dateFrom} TO *]`;
-      } else if (dateTo) {
-        dateQuery = `dateparution:[* TO ${dateTo}]`;
-      }
-      params.set('q', `${currentQ} AND ${dateQuery}`);
+    // Construire la requête avec plage de dates si nécessaire
+    let queryParts = [];
+    if (qText) {
+      queryParts.push(this.escapeLucene(qText));
     }
     
-    // 3. Filtres exacts avec refine.*
+    if (dateFrom && dateTo) {
+      queryParts.push(`dateparution:[${dateFrom} TO ${dateTo}]`);
+    } else if (dateFrom) {
+      queryParts.push(`dateparution:[${dateFrom} TO *]`);
+    } else if (dateTo) {
+      queryParts.push(`dateparution:[* TO ${dateTo}]`);
+    }
+    
     if (queryParts.length > 0) {
       params.set('q', queryParts.join(' AND '));
     }
