@@ -80,11 +80,6 @@ export class BodaccApiService {
     }
     
     // 3. Filtres exacts avec refine.*
-    if (queryParts.length > 0) {
-      params.set('q', queryParts.join(' AND '));
-    }
-    
-    // 3. Filtres exacts avec refine.*
     if (filters.tribunal?.trim()) {
       params.set('refine.tribunal', filters.tribunal.trim());
     }
