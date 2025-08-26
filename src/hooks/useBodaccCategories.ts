@@ -5,7 +5,7 @@ export function useBodaccCategories() {
   const [categories, setCategories] = useState<string[]>([]);
   const [subCategories, setSubCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(true);
+  const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,37 +31,21 @@ export function useBodaccCategories() {
       }
     };
 
-    const loadSubCategories = async () => {
-      setIsLoadingSubCategories(true);
-      
-      try {
-        const fetchedSubCategories = await BodaccApiService.getSubCategories();
-        setSubCategories(fetchedSubCategories);
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Erreur lors du chargement des sous-catégories:', err);
-        }
-        
-        // Utiliser des sous-catégories par défaut en cas d'erreur
-        setSubCategories([
-          'Dépôts des comptes',
-          'Modifications diverses',
-          'Créations',
-          'Radiations',
-          'Procédures collectives',
-          'Ventes et cessions',
-          'Immatriculations',
-          'Annonces diverses',
-          'Procédures de conciliation',
-          'Procédures de rétablissement professionnel'
-        ]);
-      } finally {
-        setIsLoadingSubCategories(false);
-      }
-    };
+    // Utiliser une liste statique de sous-catégories
+    setSubCategories([
+      'Dépôts des comptes',
+      'Modifications diverses',
+      'Créations',
+      'Radiations',
+      'Procédures collectives',
+      'Ventes et cessions',
+      'Immatriculations',
+      'Annonces diverses',
+      'Procédures de conciliation',
+      'Procédures de rétablissement professionnel'
+    ]);
 
     loadCategories();
-    loadSubCategories();
   }, []);
 
   return { 
