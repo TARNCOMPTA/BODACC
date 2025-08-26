@@ -1,6 +1,6 @@
 import { BodaccAnnouncement, SearchFilters, ApiResponse } from '../types/bodacc';
 
-const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales';
+const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/records';
 const REQUEST_TIMEOUT = 15000; // 15 secondes
 
 export class BodaccApiService {
@@ -9,13 +9,6 @@ export class BodaccApiService {
    */
   private static escapeLucene(query: string): string {
     return query.replace(/([+\-!(){}[\]^"~*?:\\/])/g, '\\$1');
-  }
-
-  /**
-   * Échappe les guillemets pour les filtres where
-   */
-  private static escapeWhereValue(value: string): string {
-    return value.replace(/"/g, '\\"');
   }
 
   /**
@@ -32,25 +25,23 @@ export class BodaccApiService {
     
     // Tri par date de parution décroissante
     const sortField = filters.sort?.trim() || '-dateparution';
-    // Convertir le format de tri si nécessaire
-    if (sortField.startsWith('-')) {
-      params.set('order_by', `${sortField.substring(1)} desc`);
-    } else {
-      params.set('order_by', `${sortField} asc`);
+    params.set('order_by', sortField);
+    
+    // 1. Recherche textuelle dans q
+    const qText = (filters.query || '').trim();
+    if (qText) {
+      params.set('q', this.escapeLucene(qText));
     }
     
-    // Construire la requête q avec tous les éléments
-    let queryParts = [];
+    // 2. Filtres de dates - utiliser la syntaxe de plage dans q
+    const dateFrom = (filters.dateFrom || '').trim();
+    const dateTo = (filters.dateTo || '').trim();
     
-    // 1. Recherche textuelle
-    const qText = (filters.query || '').trim();
+    // Construire la requête avec plage de dates si nécessaire
+    let queryParts = [];
     if (qText) {
       queryParts.push(this.escapeLucene(qText));
     }
-    
-    // 2. Filtres de dates - utiliser la syntaxe de plage
-    const dateFrom = (filters.dateFrom || '').trim();
-    const dateTo = (filters.dateTo || '').trim();
     
     if (dateFrom && dateTo) {
       queryParts.push(`dateparution:[${dateFrom} TO ${dateTo}]`);
@@ -64,23 +55,29 @@ export class BodaccApiService {
       params.set('q', queryParts.join(' AND '));
     }
     
-    // 3. Filtres exacts avec where (échapper les guillemets)
-    let whereConditions = [];
-    
+    // 3. Filtres exacts avec refine.*
     if (filters.tribunal?.trim()) {
-      whereConditions.push(`tribunal="${this.escapeWhereValue(filters.tribunal.trim())}"`);
+      params.set('where', `tribunal="${filters.tribunal.trim()}"`);
     }
     
     if (filters.category?.trim()) {
-      whereConditions.push(`typeavis_lib="${this.escapeWhereValue(filters.category.trim())}"`);
+      const whereClause = params.get('where');
+      const categoryFilter = `typeavis_lib="${filters.category.trim()}"`;
+      if (whereClause) {
+        params.set('where', `${whereClause} AND ${categoryFilter}`);
+      } else {
+        params.set('where', categoryFilter);
+      }
     }
     
     if (filters.subCategory?.trim()) {
-      whereConditions.push(`familleavis_lib="${this.escapeWhereValue(filters.subCategory.trim())}"`);
-    }
-    
-    if (whereConditions.length > 0) {
-      params.set('where', whereConditions.join(' AND '));
+      const whereClause = params.get('where');
+      const subCategoryFilter = `familleavis_lib="${filters.subCategory.trim()}"`;
+      if (whereClause) {
+        params.set('where', `${whereClause} AND ${subCategoryFilter}`);
+      } else {
+        params.set('where', subCategoryFilter);
+      }
     }
     
     return params;
@@ -95,7 +92,7 @@ export class BodaccApiService {
     
     try {
       const params = this.buildQueryParams(filters);
-      const url = `${BODACC_API_BASE}/records?${params.toString()}`;
+      const url = `${BODACC_API_BASE}?${params.toString()}`;
       
       // Log uniquement en développement
       if (process.env.NODE_ENV === 'development') {
@@ -123,14 +120,13 @@ export class BodaccApiService {
       // Logs de debug en développement uniquement
       if (process.env.NODE_ENV === 'development') {
         console.log('📊 Total résultats:', data.total_count);
-        console.log('📋 Résultats retournés:', data.records?.length || 0);
-        if (data.records?.[0]) {
-          console.log('🔍 Champs disponibles:', Object.keys(data.records[0].fields || {}));
+        console.log('📋 Résultats retournés:', data.results?.length || 0);
+        if (data.results?.[0]) {
+          console.log('🔍 Champs disponibles:', Object.keys(data.results[0].record.fields || {}));
         }
       }
       
-      // API v2 renvoie directement un tableau records
-      const announcements = (data.records || []).map((record: any) => this.mapRecord(record));
+      const announcements = (data.results || []).map((result: any) => this.mapRecord(result.record));
       
       return {
         total_count: data.total_count || 0,
@@ -159,7 +155,10 @@ export class BodaccApiService {
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
     try {
-      const url = `${BODACC_API_BASE}/facets/typeavis_lib`;
+      const params = new URLSearchParams();
+      params.set('limit', '0'); // On ne veut que les facettes, pas les données
+      
+      const url = `${BODACC_API_BASE}/facets/typeavis_lib?${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Catégories:', url);
@@ -181,18 +180,15 @@ export class BodaccApiService {
       const data = await response.json();
       
       if (process.env.NODE_ENV === 'development') {
-        console.log('🏷️ Catégories récupérées:', data);
+        console.log('🏷️ Catégories récupérées:', data.facet_groups);
       }
       
-      // Structure réelle de l'API v2 avec facet_groups
-      if (data.facet_groups && data.facet_groups.length > 0) {
-        const facetGroup = data.facet_groups[0];
-        if (facetGroup.facets) {
-          return facetGroup.facets
-            .map((facet: any) => facet.name)
-            .filter((name: string) => name && name.trim())
-            .sort();
-        }
+      // Extraire les catégories depuis les facettes
+      if (data.facets) {
+        return data.facets
+          .map((facet: any) => facet.value)
+          .filter((name: string) => name && name.trim())
+          .sort();
       }
       
       return [];
@@ -223,7 +219,7 @@ export class BodaccApiService {
     const fields = record.fields || {};
     
     return {
-      id: record.recordid || record.id || `bodacc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: record.recordid || `bodacc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       tribunal: fields.tribunal || '',
       numero_parution: fields.numeroparution || fields.parution || '',
       date_parution: fields.dateparution || '',
