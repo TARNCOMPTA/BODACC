@@ -283,52 +283,6 @@ export class BodaccApiService {
       
       // Si aucun endpoint ne fonctionne, retourner la liste statique
       throw new Error('Aucun endpoint de sous-catégories disponible');
-        console.log('🏷️ Catégories récupérées:', data);
-      }
-      
-      // Validation et parsing robuste des facettes
-      if (!data || typeof data !== 'object') {
-        throw new Error('Structure de facettes invalide');
-      }
-      
-      const categories: string[] = [];
-      
-      // Gestion de plusieurs structures possibles
-      if (Array.isArray(data.facet_groups)) {
-        // Structure avec facet_groups
-        for (const group of data.facet_groups) {
-          if (group && typeof group === 'object' && Array.isArray(group.facets)) {
-            for (const facet of group.facets) {
-              if (facet && typeof facet === 'object') {
-                // Essayer plusieurs propriétés possibles
-                const value = facet.name || facet.value || facet.label;
-                if (typeof value === 'string' && value.trim()) {
-                  categories.push(value.trim());
-                }
-              }
-            }
-          }
-        }
-      } else if (Array.isArray(data.facets)) {
-        // Structure directe avec facets
-        for (const facet of data.facets) {
-          if (facet && typeof facet === 'object') {
-            const value = facet.name || facet.value || facet.label;
-            if (typeof value === 'string' && value.trim()) {
-              categories.push(value.trim());
-            }
-          }
-        }
-      }
-      
-      // Dédoublonner et trier
-      const uniqueCategories = [...new Set(categories)].sort();
-      
-      if (uniqueCategories.length === 0) {
-        throw new Error('Aucune catégorie trouvée');
-      }
-      
-      return uniqueCategories;
       
     } catch (error) {
       clearTimeout(timeoutId);
@@ -350,6 +304,63 @@ export class BodaccApiService {
         'Vente de fonds',
         'Location-gérance',
         'Dépôt des comptes'
+      ];
+    }
+  }
+
+  /**
+   * Parse les facettes de manière robuste
+   */
+  private static parseFacets(data: any): string[] {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🏷️ Catégories récupérées:', data);
+    }
+    
+    // Validation et parsing robuste des facettes
+    if (!data || typeof data !== 'object') {
+      throw new Error('Structure de facettes invalide');
+    }
+    
+    const categories: string[] = [];
+    
+    // Gestion de plusieurs structures possibles
+    if (Array.isArray(data.facet_groups)) {
+      // Structure avec facet_groups
+      for (const group of data.facet_groups) {
+        if (group && typeof group === 'object' && Array.isArray(group.facets)) {
+          for (const facet of group.facets) {
+            if (facet && typeof facet === 'object') {
+              // Essayer plusieurs propriétés possibles
+              const value = facet.name || facet.value || facet.label;
+              if (typeof value === 'string' && value.trim()) {
+                categories.push(value.trim());
+              }
+            }
+          }
+        }
+      }
+    } else if (Array.isArray(data.facets)) {
+      // Structure directe avec facets
+      for (const facet of data.facets) {
+        if (facet && typeof facet === 'object') {
+          const value = facet.name || facet.value || facet.label;
+          if (typeof value === 'string' && value.trim()) {
+            categories.push(value.trim());
+          }
+        }
+      }
+    }
+    
+    // Dédoublonner et trier
+    const uniqueCategories = [...new Set(categories)].sort();
+    
+    if (uniqueCategories.length === 0) {
+      throw new Error('Aucune catégorie trouvée');
+    }
+    
+    return uniqueCategories;
+  }
+
   /**
    * Mappe un enregistrement de l'API vers notre type BodaccAnnouncement avec typage sécurisé
    */
