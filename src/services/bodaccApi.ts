@@ -158,7 +158,7 @@ export class BodaccApiService {
       const params = new URLSearchParams();
       params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/facets/typeavis_lib?${params.toString()}`;
+      const url = `${BODACC_API_BASE}/facets/typeavis_lib?${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Catégories:', url);
