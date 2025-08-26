@@ -8,38 +8,41 @@ const LUCENE_RESERVED_WORDS = new Set(['AND', 'OR', 'NOT', 'TO']);
 
 export class BodaccApiService {
   /**
-   * Échappe complètement les caractères spéciaux Lucene et les mots réservés
+   * Échappe les caractères spéciaux Lucene de manière simple et robuste
    */
   private static escapeLucene(query: string): string {
     if (!query || typeof query !== 'string') return '';
     
-    // Normaliser les espaces
-    const normalized = query.trim().replace(/\s+/g, ' ');
+    // Approche simple : échapper tous les caractères spéciaux un par un
+    let escaped = query.trim().replace(/\s+/g, ' ');
     
-    // Échapper tous les caractères spéciaux Lucene (regex complète avec opérateurs booléens)
-    const escaped = normalized.replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, '\\$1');
+    // Échapper chaque caractère spécial individuellement pour éviter les erreurs de regex
+    escaped = escaped.replace(/\+/g, '\\+');
+    escaped = escaped.replace(/\-/g, '\\-');
+    escaped = escaped.replace(/!/g, '\\!');
+    escaped = escaped.replace(/\(/g, '\\(');
+    escaped = escaped.replace(/\)/g, '\\)');
+    escaped = escaped.replace(/\{/g, '\\{');
+    escaped = escaped.replace(/\}/g, '\\}');
+    escaped = escaped.replace(/\[/g, '\\[');
+    escaped = escaped.replace(/\]/g, '\\]');
+    escaped = escaped.replace(/\^/g, '\\^');
+    escaped = escaped.replace(/"/g, '\\"');
+    escaped = escaped.replace(/~/g, '\\~');
+    escaped = escaped.replace(/\*/g, '\\*');
+    escaped = escaped.replace(/\?/g, '\\?');
+    escaped = escaped.replace(/:/g, '\\:');
+    escaped = escaped.replace(/\//g, '\\/');
+    escaped = escaped.replace(/\\/g, '\\\\'); // Backslash en dernier
+    escaped = escaped.replace(/&/g, '\\&');
+    escaped = escaped.replace(/\|/g, '\\|');
     
-    // Traiter les mots réservés seulement s'ils ne sont pas déjà entre guillemets
-    // et ne font pas partie d'une expression complexe
-    return escaped.replace(/\b(AND|OR|NOT)\b/g, (match) => {
-      // Vérifier si le mot est déjà entre guillemets ou échappé
-      const beforeMatch = escaped.substring(0, escaped.indexOf(match));
-      const afterMatch = escaped.substring(escaped.indexOf(match) + match.length);
-      
-      // Si déjà entre guillemets, ne pas modifier
-      const openQuotes = (beforeMatch.match(/"/g) || []).length;
-      const closeQuotes = (afterMatch.match(/"/g) || []).length;
-      if (openQuotes % 2 === 1 && closeQuotes > 0) {
-        return match; // Déjà entre guillemets
-      }
-      
-      // Si précédé ou suivi d'un caractère spécial, ne pas modifier
-      if (/[\\:]/.test(beforeMatch.slice(-1)) || /[\\:]/.test(afterMatch.charAt(0))) {
-        return match; // Fait partie d'une expression field:value
-      }
-      
-      return `"${match}"`;
-    });
+    // Traiter les mots réservés de manière simple
+    escaped = escaped.replace(/\bAND\b/g, '"AND"');
+    escaped = escaped.replace(/\bOR\b/g, '"OR"');
+    escaped = escaped.replace(/\bNOT\b/g, '"NOT"');
+    
+    return escaped;
   }
 
   /**
