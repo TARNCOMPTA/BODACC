@@ -2,48 +2,50 @@ import { useState, useEffect } from 'react';
 import { BodaccApiService } from '../services/bodaccApi';
 
 export function useBodaccCategories() {
-  const [categories, setCategories] = useState<string[]>([
-    'Avis de constitution',
-    'Modification',
-    'Dissolution',
-    'Clôture de liquidation',
-    'Vente de fonds de commerce',
-    'Location-gérance'
-  ]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [subCategories, setSubCategories] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Charger les sous-catégories depuis l'API
   useEffect(() => {
-    const loadSubCategories = async () => {
-      setIsLoadingSubCategories(true);
+    const loadCategories = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        const subCats = await BodaccApiService.getSubCategories();
-        setSubCategories(subCats);
+        const fetchedCategories = await BodaccApiService.getCategories();
+        setCategories(fetchedCategories);
       } catch (err) {
-        console.error('Erreur chargement sous-catégories:', err);
-        // Fallback vers liste statique
-        setSubCategories([
+        const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des catégories';
+        setError(errorMessage);
+        
+        // Utiliser des catégories par défaut en cas d'erreur
+        setCategories([
           'Avis initial',
           'Avis rectificatif',
-          'Avis d\'annulation',
-          'Création d\'entreprise',
-          'Modification',
-          'Dissolution',
-          'Clôture de liquidation',
-          'Procédure collective',
-          'Vente de fonds',
-          'Location-gérance',
-          'Dépôt des comptes'
+          'Avis d\'annulation'
         ]);
       } finally {
-        setIsLoadingSubCategories(false);
+        setIsLoading(false);
       }
     };
 
-    loadSubCategories();
+    // Utiliser une liste statique de sous-catégories
+    setSubCategories([
+      'Dépôts des comptes',
+      'Modifications diverses',
+      'Créations',
+      'Radiations',
+      'Procédures collectives',
+      'Ventes et cessions',
+      'Immatriculations',
+      'Annonces diverses',
+      'Procédures de conciliation',
+      'Procédures de rétablissement professionnel'
+    ]);
+
+    loadCategories();
   }, []);
 
   return { 
