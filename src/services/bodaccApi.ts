@@ -159,7 +159,7 @@ export class BodaccApiService {
       const params = new URLSearchParams();
       params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `${BODACC_DATASET_BASE}/facets/typeavis_lib?${params.toString()}`;
+      const url = `${BODACC_API_BASE}?facet=typeavis_lib&${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Catégories:', url);
