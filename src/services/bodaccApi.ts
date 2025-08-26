@@ -237,33 +237,52 @@ export class BodaccApiService {
   /**
    * Récupère les catégories disponibles depuis l'API avec gestion robuste des facettes
    */
-  static async getCategories(): Promise<string[]> {
+  static async getSubCategories(): Promise<string[]> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
     try {
-      const url = `${BODACC_API_BASE}/facets/typeavis_lib`;
+      // Essayer plusieurs endpoints possibles pour les sous-catégories
+      const endpoints = [
+        'familleavis_lib',
+        'familleavis',
+        'sous_categorie',
+        'publicationavis_facette',
+        'publicationavis'
+      ];
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🏷️ URL Catégories:', url);
-      }
-      
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json'
+      for (const endpoint of endpoints) {
+        try {
+          const url = `${BODACC_API_BASE}/facets/${endpoint}`;
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🏷️ Tentative URL Sous-catégories:', url);
+          }
+          
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const subCategories = this.parseFacets(data);
+            
+            if (subCategories.length > 0) {
+              clearTimeout(timeoutId);
+              return subCategories;
+            }
+          }
+        } catch (endpointError) {
+          // Continuer avec l'endpoint suivant
+          continue;
         }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
-      
-      if (process.env.NODE_ENV === 'development') {
+      // Si aucun endpoint ne fonctionne, retourner la liste statique
+      throw new Error('Aucun endpoint de sous-catégories disponible');
         console.log('🏷️ Catégories récupérées:', data);
       }
       
@@ -320,16 +339,17 @@ export class BodaccApiService {
       
       // Retourner une liste par défaut en cas d'erreur
       return [
-        'Avis de constitution',
+        'Avis initial',
+        'Avis rectificatif',
+        'Avis d\'annulation',
+        'Création d\'entreprise',
         'Modification',
         'Dissolution',
         'Clôture de liquidation',
-        'Vente de fonds de commerce',
-        'Location-gérance'
-      ];
-    }
-  }
-
+        'Procédure collective',
+        'Vente de fonds',
+        'Location-gérance',
+        'Dépôt des comptes'
   /**
    * Mappe un enregistrement de l'API vers notre type BodaccAnnouncement avec typage sécurisé
    */
@@ -377,8 +397,15 @@ export class BodaccApiService {
       numero_parution: toString(fields.numeroparution || fields.parution),
       date_parution: toString(fields.dateparution),
       numero_annonce: toString(fields.numeroannonce),
-      categorie: toString(fields.typeavis_lib || fields.typeavis),
-      sous_categorie: toString(fields.familleavis_lib || fields.familleavis),
+      categorie: toString(fields.typeavis_lib || fields.typeavis || fields.categorie),
+      sous_categorie: toString(
+        fields.familleavis_lib || 
+        fields.familleavis || 
+        fields.sous_categorie ||
+        fields.publicationavis_facette ||
+        fields.publicationavis ||
+        fields.type_avis
+      ),
       libelle: toString(fields.typeavis_lib || fields.libelle),
       type: toString(fields.publicationavis || fields.publicationavis_facette),
       denomination,
