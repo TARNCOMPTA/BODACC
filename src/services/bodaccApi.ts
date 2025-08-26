@@ -1,6 +1,6 @@
 import { BodaccAnnouncement, SearchFilters, ApiResponse } from '../types/bodacc';
 
-const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/records/1.0/search/';
+const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/records';
 const REQUEST_TIMEOUT = 15000; // 15 secondes
 
 export class BodaccApiService {
@@ -17,18 +17,15 @@ export class BodaccApiService {
   private static buildQueryParams(filters: SearchFilters): URLSearchParams {
     const params = new URLSearchParams();
     
-    // Dataset obligatoire
-    params.set('dataset', 'annonces-commerciales');
-    
     // Pagination sécurisée
     const limit = Math.max(1, Math.min(100, Number(filters.limit) || 20));
     const page = Math.max(1, Number(filters.page) || 1);
-    params.set('rows', String(limit));
-    params.set('start', String((page - 1) * limit));
+    params.set('limit', String(limit));
+    params.set('offset', String((page - 1) * limit));
     
     // Tri par date de parution décroissante
     const sortField = filters.sort?.trim() || '-dateparution';
-    params.set('sort', sortField);
+    params.set('order_by', sortField);
     
     // 1. Recherche textuelle dans q
     const qText = (filters.query || '').trim();
@@ -60,15 +57,27 @@ export class BodaccApiService {
     
     // 3. Filtres exacts avec refine.*
     if (filters.tribunal?.trim()) {
-      params.set('refine.tribunal', filters.tribunal.trim());
+      params.set('where', `tribunal="${filters.tribunal.trim()}"`);
     }
     
     if (filters.category?.trim()) {
-      params.set('refine.typeavis_lib', filters.category.trim());
+      const whereClause = params.get('where');
+      const categoryFilter = `typeavis_lib="${filters.category.trim()}"`;
+      if (whereClause) {
+        params.set('where', `${whereClause} AND ${categoryFilter}`);
+      } else {
+        params.set('where', categoryFilter);
+      }
     }
     
     if (filters.subCategory?.trim()) {
-      params.set('refine.familleavis_lib', filters.subCategory.trim());
+      const whereClause = params.get('where');
+      const subCategoryFilter = `familleavis_lib="${filters.subCategory.trim()}"`;
+      if (whereClause) {
+        params.set('where', `${whereClause} AND ${subCategoryFilter}`);
+      } else {
+        params.set('where', subCategoryFilter);
+      }
     }
     
     return params;
@@ -110,17 +119,17 @@ export class BodaccApiService {
       
       // Logs de debug en développement uniquement
       if (process.env.NODE_ENV === 'development') {
-        console.log('📊 Total résultats:', data.nhits);
-        console.log('📋 Résultats retournés:', data.records?.length || 0);
-        if (data.records?.[0]) {
-          console.log('🔍 Champs disponibles:', Object.keys(data.records[0].fields || {}));
+        console.log('📊 Total résultats:', data.total_count);
+        console.log('📋 Résultats retournés:', data.results?.length || 0);
+        if (data.results?.[0]) {
+          console.log('🔍 Champs disponibles:', Object.keys(data.results[0].record.fields || {}));
         }
       }
       
-      const announcements = (data.records || []).map((record: any) => this.mapRecord(record));
+      const announcements = (data.results || []).map((result: any) => this.mapRecord(result.record));
       
       return {
-        total_count: data.nhits || 0,
+        total_count: data.total_count || 0,
         results: announcements
       };
       
@@ -147,11 +156,9 @@ export class BodaccApiService {
     
     try {
       const params = new URLSearchParams();
-      params.set('dataset', 'annonces-commerciales');
-      params.set('facet', 'typeavis_lib');
-      params.set('rows', '0'); // On ne veut que les facettes, pas les données
+      params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `${BODACC_API_BASE}?${params.toString()}`;
+      const url = `https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/facets/typeavis_lib?${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Catégories:', url);
@@ -177,10 +184,9 @@ export class BodaccApiService {
       }
       
       // Extraire les catégories depuis les facettes
-      const facetGroup = data.facet_groups?.find((group: any) => group.name === 'typeavis_lib');
-      if (facetGroup?.facets) {
-        return facetGroup.facets
-          .map((facet: any) => facet.name)
+      if (data.facets) {
+        return data.facets
+          .map((facet: any) => facet.value)
           .filter((name: string) => name && name.trim())
           .sort();
       }
@@ -215,11 +221,9 @@ export class BodaccApiService {
     
     try {
       const params = new URLSearchParams();
-      params.set('dataset', 'annonces-commerciales');
-      params.set('facet', 'familleavis_lib');
-      params.set('rows', '0'); // On ne veut que les facettes, pas les données
+      params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `${BODACC_API_BASE}?${params.toString()}`;
+      const url = `https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/facets/familleavis_lib?${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Sous-catégories:', url);
@@ -245,10 +249,9 @@ export class BodaccApiService {
       }
       
       // Extraire les sous-catégories depuis les facettes
-      const facetGroup = data.facet_groups?.find((group: any) => group.name === 'familleavis_lib');
-      if (facetGroup?.facets) {
-        return facetGroup.facets
-          .map((facet: any) => facet.name)
+      if (data.facets) {
+        return data.facets
+          .map((facet: any) => facet.value)
           .filter((name: string) => name && name.trim())
           .sort();
       }
