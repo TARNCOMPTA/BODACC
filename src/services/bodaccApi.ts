@@ -223,7 +223,7 @@ export class BodaccApiService {
       const params = new URLSearchParams();
       params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/facets/familleavis_lib?${params.toString()}`;
+      const url = `https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/facets/familleavis?${params.toString()}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log('🏷️ URL Sous-catégories:', url);
