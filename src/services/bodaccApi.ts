@@ -16,17 +16,30 @@ export class BodaccApiService {
     // Normaliser les espaces
     const normalized = query.trim().replace(/\s+/g, ' ');
     
-    // Échapper tous les caractères spéciaux Lucene (regex complète)
-    const escaped = normalized.replace(/([+\-!(){}[\]^"~*?:\\/])/g, '\\$1');
+    // Échapper tous les caractères spéciaux Lucene (regex complète avec opérateurs booléens)
+    const escaped = normalized.replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, '\\$1');
     
-    // Traiter les mots réservés
-    return escaped.split(' ').map(word => {
-      const upperWord = word.toUpperCase();
-      if (LUCENE_RESERVED_WORDS.has(upperWord)) {
-        return `"${word}"`;
+    // Traiter les mots réservés seulement s'ils ne sont pas déjà entre guillemets
+    // et ne font pas partie d'une expression complexe
+    return escaped.replace(/\b(AND|OR|NOT)\b/g, (match) => {
+      // Vérifier si le mot est déjà entre guillemets ou échappé
+      const beforeMatch = escaped.substring(0, escaped.indexOf(match));
+      const afterMatch = escaped.substring(escaped.indexOf(match) + match.length);
+      
+      // Si déjà entre guillemets, ne pas modifier
+      const openQuotes = (beforeMatch.match(/"/g) || []).length;
+      const closeQuotes = (afterMatch.match(/"/g) || []).length;
+      if (openQuotes % 2 === 1 && closeQuotes > 0) {
+        return match; // Déjà entre guillemets
       }
-      return word;
-    }).join(' ');
+      
+      // Si précédé ou suivi d'un caractère spécial, ne pas modifier
+      if (/[\\:]/.test(beforeMatch.slice(-1)) || /[\\:]/.test(afterMatch.charAt(0))) {
+        return match; // Fait partie d'une expression field:value
+      }
+      
+      return `"${match}"`;
+    });
   }
 
   /**
