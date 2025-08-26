@@ -232,7 +232,7 @@ export class BodaccApiService {
       sous_categorie: fields.familleavis_lib || fields.familleavis || '',
       libelle: fields.typeavis_lib || '',
       type: fields.publicationavis || fields.publicationavis_facette || '',
-      denomination: fields.commercant || fields.denomination || 'Dénomination non spécifiée',
+      denomination: fields.commercant || fields.denomination || fields.nom_entreprise || fields.raison_sociale || fields.enseigne || 'Dénomination non spécifiée',
       adresse: fields.adresse || '',
       code_postal: fields.cp || '',
       ville: fields.ville || '',
