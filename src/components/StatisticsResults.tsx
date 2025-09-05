@@ -175,19 +175,10 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
           </div>
         </div>
         
-        {/* Tableau détaillé pour les grandes datasets */}
-        {data.periods.length > 12 && (
-          <div className="mt-6">
-            <details className="group">
-              <summary className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center space-x-2">
-                <span>Voir le tableau détaillé</span>
-                <div className="w-4 h-4 transition-transform group-open:rotate-180">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </summary>
-              <div className="mt-4 overflow-x-auto">
+        {/* Tableau détaillé - toujours affiché */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tableau détaillé</h3>
+          <div className="overflow-x-auto">
                 {(() => {
                   // Organiser les données par année
                   const yearlyData: Record<string, Record<string, number>> = {};
@@ -271,11 +262,23 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                   
                   // Calculer les totaux par année
                   const yearTotals: Record<string, number> = {};
+                  const periodAverages: Record<string, number> = {};
                   sortedYears.forEach(year => {
                     yearTotals[year] = sortedPeriodTypes.reduce((sum, periodType) => {
                       return sum + (yearlyData[periodType]?.[year] || 0);
                     }, 0);
                   });
+                  
+                  // Calculer les moyennes par période
+                  sortedPeriodTypes.forEach(periodType => {
+                    const values = sortedYears.map(year => yearlyData[periodType]?.[year] || 0);
+                    const sum = values.reduce((acc, val) => acc + val, 0);
+                    periodAverages[periodType] = values.length > 0 ? sum / values.length : 0;
+                  });
+                  
+                  // Calculer la moyenne générale
+                  const totalSum = Object.values(yearTotals).reduce((sum, total) => sum + total, 0);
+                  const generalAverage = sortedYears.length > 0 ? totalSum / sortedYears.length : 0;
                   
                   return (
                     <table className="min-w-full divide-y divide-gray-200">
@@ -294,6 +297,9 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                               )}
                             </th>
                           ))}
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Moyenne
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -334,6 +340,16 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                                 </td>
                               );
                             })}
+                            <td className="px-4 py-4 whitespace-nowrap text-center">
+                              <div className="text-sm font-bold text-gray-900">
+                                {Math.round(generalAverage).toLocaleString('fr-FR')}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-center">
+                              <div className="text-sm font-medium text-gray-900">
+                                {Math.round(periodAverages[periodType]).toLocaleString('fr-FR')}
+                              </div>
+                            </td>
                           </tr>
                         ))}
                         {/* Ligne de total */}
@@ -377,9 +393,7 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                   );
                 })()}
               </div>
-            </details>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Résumé des tendances */}
