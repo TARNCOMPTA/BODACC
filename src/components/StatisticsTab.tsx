@@ -7,7 +7,7 @@ import { StatisticsFilters } from '../types/bodacc';
 
 export function StatisticsTab() {
   const today = new Date();
-  const threeYearsAgo = new Date(today.getFullYear() - 2, 0, 1); // 1er janvier de l'année - 2 ans
+  const threeYearsAgo = new Date(today.getFullYear() - 3, 0, 1); // 1er janvier de l'année - 3 ans
   const todayString = today.toISOString().split('T')[0];
   const threeYearsAgoString = threeYearsAgo.toISOString().split('T')[0];
   
