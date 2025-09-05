@@ -33,29 +33,48 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   };
 
   const getSiretNumber = () => {
+    console.log('=== DEBUG SIREN EXTRACTION ===');
+    console.log('registrationNumber:', registrationNumber);
+    console.log('announcement.texte:', announcement.texte);
+    
     // Utiliser directement le numéro d'immatriculation comme SIREN
     if (registrationNumber && /\d{9}/.test(registrationNumber)) {
+      console.log('Processing registrationNumber:', registrationNumber);
       // Nettoyer les espaces et caractères non numériques
       const cleanedNumber = registrationNumber.replace(/\s+/g, '').replace(/[^\d]/g, '');
+      console.log('cleanedNumber:', cleanedNumber);
       const match = cleanedNumber.match(/(\d{9})/);
+        console.log('SIREN found from registration:', match[1]);
+      console.log('match result:', match);
       if (match) return match[1];
     }
     
     // Si pas de numéro d'immatriculation, essayer d'extraire depuis le texte
     if (announcement.texte) {
+      console.log('Searching in texte...');
       // Rechercher un numéro SIREN (9 chiffres)
       const sirenMatch = announcement.texte.match(/SIREN[:\s]*(\d{9})/i);
-      if (sirenMatch) return sirenMatch[1];
+      if (sirenMatch) {
+        console.log('SIREN found in texte:', sirenMatch[1]);
+        return sirenMatch[1];
+      }
       
       // Rechercher un numéro SIRET (14 chiffres) et extraire le SIREN
       const siretMatch = announcement.texte.match(/SIRET[:\s]*(\d{14})/i);
-      if (siretMatch) return siretMatch[1].substring(0, 9);
+      if (siretMatch) {
+        console.log('SIRET found in texte, extracting SIREN:', siretMatch[1].substring(0, 9));
+        return siretMatch[1].substring(0, 9);
+      }
       
       // Rechercher des numéros dans le texte (patterns plus larges)
       const numberMatch = announcement.texte.match(/(\d{9})/);
-      if (numberMatch) return numberMatch[1];
+      if (numberMatch) {
+        console.log('9-digit number found in texte:', numberMatch[1]);
+        return numberMatch[1];
+      }
     }
     
+    console.log('No SIREN found');
     return null;
   };
 
