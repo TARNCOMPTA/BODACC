@@ -169,13 +169,24 @@ export class BodaccApiService {
       const data = await response.json();
       
       if (process.env.NODE_ENV === 'development') {
-        console.log('🏷️ Catégories récupérées:', data.facet_groups);
+        console.log('🏷️ Données facettes récupérées:', data.facet_groups);
       }
       
       // Extraire les catégories depuis les facettes
+      if (data.facet_groups && data.facet_groups.length > 0) {
+        const typeavisFacetGroup = data.facet_groups.find((group: any) => group.name === 'typeavis_lib');
+        if (typeavisFacetGroup && typeavisFacetGroup.facets) {
+          return typeavisFacetGroup.facets
+            .map((facet: any) => facet.name)
+            .filter((name: string) => name && name.trim())
+            .sort();
+        }
+      }
+      
+      // Fallback: essayer la structure alternative
       if (data.facets) {
         return data.facets
-          .map((facet: any) => facet.value)
+          .map((facet: any) => facet.name || facet.value)
           .filter((name: string) => name && name.trim())
           .sort();
       }
