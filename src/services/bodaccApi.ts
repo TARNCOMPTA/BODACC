@@ -238,7 +238,7 @@ export class BodaccApiService {
       // Extraire les catégories depuis les facettes
       if (data.facet_groups && data.facet_groups.length > 0) {
         const typeavisFacetGroup = data.facet_groups.find((group: any) => group.name === 'typeavis_lib');
-        if (typeavisFacetGroup && typeavisFacetGroup.facets) {
+        if (typeavisFacetGroup && typeavisFacetGroup.facets && Array.isArray(typeavisFacetGroup.facets)) {
           return typeavisFacetGroup.facets
             .map((facet: any) => facet.name)
             .filter((name: string) => name && name.trim())
