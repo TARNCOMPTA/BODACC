@@ -447,42 +447,6 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div>
-              <h4 className="font-medium text-gray-800 mb-2">Évolution générale</h4>
-              <div className="bg-white rounded-lg p-4 border border-blue-100">
-                {(() => {
-                  const firstPeriod = data.periods[0];
-                  const lastPeriod = data.periods[data.periods.length - 1];
-                  const globalEvolution = ((lastPeriod.count - firstPeriod.count) / firstPeriod.count * 100);
-                  
-                  return (
-                    <div className="flex items-center space-x-2">
-                      {globalEvolution > 0 ? (
-                        <TrendingUp className="w-5 h-5 text-green-600" />
-                      ) : globalEvolution < 0 ? (
-                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                        </svg>
-                      ) : (
-                        <div className="w-5 h-5 bg-gray-400 rounded-full" />
-                      )}
-                      <div>
-                        <p className={`text-lg font-semibold ${
-                          globalEvolution > 0 ? 'text-green-600' : 
-                          globalEvolution < 0 ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {globalEvolution > 0 ? '+' : ''}{globalEvolution.toFixed(1)}%
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {globalEvolution > 0 ? 'Hausse' : globalEvolution < 0 ? 'Baisse' : 'Stable'}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-            
-            <div>
               <h4 className="font-medium text-gray-800 mb-2">Écart min/max</h4>
               <div className="bg-white rounded-lg p-4 border border-purple-100">
                 {(() => {
