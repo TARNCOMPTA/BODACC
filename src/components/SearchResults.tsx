@@ -105,71 +105,69 @@ export function SearchResults({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">
-                {startIndex}-{endIndex} sur {totalCount.toLocaleString('fr-FR')} résultats
-              </span>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <label htmlFor="sort" className="text-sm text-gray-600">Trier par:</label>
-              <select
-                id="sort"
-                value={filters.sort || '-dateparution'}
-                onChange={(e) => onFiltersChange({ 
-                  ...filters, 
-                  sort: e.target.value,
-                  page: 1 
-                })}
-                className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="-dateparution">Date (plus récent)</option>
-                <option value="dateparution">Date (plus ancien)</option>
-                <option value="numerodepartement">Département (01, 02, 03...)</option>
-                <option value="-numerodepartement">Département (99, 98, 97...)</option>
-                <option value="departement_nom_officiel">Département nom (A-Z)</option>
-                <option value="-departement_nom_officiel">Département nom (Z-A)</option>
-                <option value="ville">Ville (A-Z)</option>
-                <option value="-ville">Ville (Z-A)</option>
-                <option value="commercant">Entreprise (A-Z)</option>
-                <option value="-commercant">Entreprise (Z-A)</option>
-                <option value="tribunal">Tribunal (A-Z)</option>
-                <option value="-tribunal">Tribunal (Z-A)</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <label htmlFor="limit" className="text-sm text-gray-600">Afficher:</label>
-              <select
-                id="limit"
-                value={filters.limit || 20}
-                onChange={(e) => onFiltersChange({ 
-                  ...filters, 
-                  limit: parseInt(e.target.value),
-                  page: 1 
-                })}
-                className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-              <span className="text-sm text-gray-600">par page</span>
-            </div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <FileText className="w-5 h-5 text-gray-400" />
+            <span className="text-gray-600">
+              {startIndex}-{endIndex} sur {totalCount.toLocaleString('fr-FR')} résultats
+            </span>
           </div>
           
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-colors"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exporter CSV
-          </button>
+          <div className="flex items-center space-x-2">
+            <label htmlFor="sort" className="text-sm text-gray-600">Trier par:</label>
+            <select
+              id="sort"
+              value={filters.sort || '-dateparution'}
+              onChange={(e) => onFiltersChange({ 
+                ...filters, 
+                sort: e.target.value,
+                page: 1 
+              })}
+              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="-dateparution">Date (plus récent)</option>
+              <option value="dateparution">Date (plus ancien)</option>
+              <option value="numerodepartement">Département (01, 02, 03...)</option>
+              <option value="-numerodepartement">Département (99, 98, 97...)</option>
+              <option value="departement_nom_officiel">Département nom (A-Z)</option>
+              <option value="-departement_nom_officiel">Département nom (Z-A)</option>
+              <option value="ville">Ville (A-Z)</option>
+              <option value="-ville">Ville (Z-A)</option>
+              <option value="commercant">Entreprise (A-Z)</option>
+              <option value="-commercant">Entreprise (Z-A)</option>
+              <option value="tribunal">Tribunal (A-Z)</option>
+              <option value="-tribunal">Tribunal (Z-A)</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <label htmlFor="limit" className="text-sm text-gray-600">Afficher:</label>
+            <select
+              id="limit"
+              value={filters.limit || 20}
+              onChange={(e) => onFiltersChange({ 
+                ...filters, 
+                limit: parseInt(e.target.value),
+                page: 1 
+              })}
+              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-gray-600">par page</span>
+          </div>
         </div>
+        
+        <button
+          onClick={handleExport}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-colors"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Exporter CSV
+        </button>
       </div>
 
       <div className="grid gap-4">
