@@ -342,11 +342,6 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                             })}
                             <td className="px-4 py-4 whitespace-nowrap text-center">
                               <div className="text-sm font-bold text-gray-900">
-                                {Math.round(generalAverage).toLocaleString('fr-FR')}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap text-center">
-                              <div className="text-sm font-medium text-gray-900">
                                 {Math.round(periodAverages[periodType]).toLocaleString('fr-FR')}
                               </div>
                             </td>
