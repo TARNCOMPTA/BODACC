@@ -48,9 +48,9 @@ export class BodaccApiService {
     }
     
     // Filtre par tribunal
-    if (filters.tribunal && filters.tribunal.trim()) {
-      const escapedTribunal = this.escapeSqlValue(filters.tribunal.trim());
-      whereConditions.push(`tribunal = '${escapedTribunal}'`);
+    if (filters.departement && filters.departement.trim()) {
+      const escapedDepartement = this.escapeSqlValue(filters.departement.trim());
+      whereConditions.push(`numerodepartement = '${escapedDepartement}'`);
     }
     
     // Filtre par catégorie (typeavis_lib)

@@ -14,7 +14,7 @@ function App() {
   
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
-    tribunal: '',
+    departement: '',
     category: '',
     subCategory: '',
     dateFrom: oneMonthAgoString,

@@ -37,7 +37,7 @@ export type BodaccFamily =
 
 export interface SearchFilters {
   query: string;
-  tribunal: string;
+  departement: string;
   category: string;
   subCategory: string;
   dateFrom: string;
