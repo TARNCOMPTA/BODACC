@@ -312,16 +312,3 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
     </div>
   );
 }
-                    {period.period}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-
-    </div>
-  );
-}
