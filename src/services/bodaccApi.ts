@@ -28,7 +28,7 @@ export class BodaccApiService {
     // Pagination
     const limit = Math.max(1, Math.min(100, filters.limit || 20));
     const page = Math.max(1, filters.page || 1);
-    const offset = (page - 1) * limit;
+    const offset = Math.max(0, (page - 1) * limit);
     
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());

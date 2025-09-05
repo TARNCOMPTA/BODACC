@@ -27,10 +27,9 @@ export function SearchResults({
   const handleExport = () => {
     if (announcements.length === 0) return;
     
-    // Fonction pour échapper les valeurs CSV
     const escapeCsv = (value: string) => {
       if (!value) return '""';
-      const escaped = value.replace(/"/g, '""'); // Échapper les guillemets
+      const escaped = value.replace(/"/g, '""');
       return `"${escaped}"`;
     };
     

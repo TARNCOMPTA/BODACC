@@ -12,8 +12,8 @@ export function useBodaccData() {
     setIsLoading(true);
     setError(null);
     
-    try {
-      const response: ApiResponse = await BodaccApiService.getAnnouncements(filters);
+    // Si c'est un changement de page ou de tri, charger automatiquement
+    if ((newFilters.page !== filters.page || newFilters.sort !== filters.sort || newFilters.limit !== filters.limit) && announcements.length > 0) {
       
       // Tri par date de parution décroissante (plus récente en premier)
       const sortedAnnouncements = response.results.sort((a, b) => {
