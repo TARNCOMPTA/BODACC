@@ -7,9 +7,9 @@ interface HomeTabProps {
 
 export function HomeTab({ onTabChange }: HomeTabProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50" role="main">
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" itemScope itemType="https://schema.org/WebApplication">
         <div className="text-center">
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center justify-center w-20 h-20 bg-blue-600 rounded-2xl shadow-lg">
@@ -17,11 +17,11 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6" itemProp="name">
             BODACC Explorer
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed" itemProp="description">
             Explorez et analysez les annonces officielles du 
             <span className="font-semibold text-blue-600"> Bulletin officiel des annonces civiles et commerciales</span>
           </p>
@@ -37,12 +37,12 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" id="fonctionnalites">
             Fonctionnalités principales
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -52,12 +52,12 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Recherche d'annonces */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
+          <article className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center mb-6">
               <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl">
                 <Search className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 ml-4">Recherche d'annonces</h3>
+              <h3 className="text-2xl font-bold text-gray-900 ml-4" id="recherche-annonces">Recherche d'annonces</h3>
             </div>
             
             <p className="text-gray-600 mb-6 leading-relaxed">
@@ -83,15 +83,15 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
                 Pagination et tri personnalisés
               </div>
             </div>
-          </div>
+          </article>
 
           {/* Statistiques */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
+          <article className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center mb-6">
               <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl">
                 <BarChart3 className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 ml-4">Analyses statistiques</h3>
+              <h3 className="text-2xl font-bold text-gray-900 ml-4" id="analyses-statistiques">Analyses statistiques</h3>
             </div>
             
             <p className="text-gray-600 mb-6 leading-relaxed">
@@ -117,15 +117,15 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
                 Export des statistiques
               </div>
             </div>
-          </div>
+          </article>
         </div>
-      </div>
+      </section>
 
       {/* Stats Overview */}
-      <div className="bg-white border-t border-gray-200">
+      <section className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4" id="bodacc-chiffres">
               Le BODACC en chiffres
             </h2>
             <p className="text-lg text-gray-600">
@@ -167,13 +167,13 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* What is BODACC */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 md:p-12 text-white">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6" id="quest-ce-que-bodacc">
               Qu'est-ce que le BODACC ?
             </h2>
             
@@ -218,12 +218,12 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4" id="commencer">
             Prêt à explorer les données BODACC ?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -235,6 +235,7 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             <button 
               onClick={() => onTabChange('search')}
               className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
+              aria-label="Accéder à la recherche d'annonces BODACC"
             >
               <Search className="w-5 h-5 mr-2" />
               Rechercher des annonces
@@ -243,13 +244,14 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             <button 
               onClick={() => onTabChange('statistics')}
               className="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
+              aria-label="Accéder aux statistiques BODACC"
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               Voir les statistiques
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
