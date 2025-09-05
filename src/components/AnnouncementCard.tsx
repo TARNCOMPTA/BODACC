@@ -33,7 +33,13 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   };
 
   const getSiretNumber = () => {
-    // Essayer d'extraire le numéro SIREN depuis le texte
+    // Utiliser directement le numéro d'immatriculation comme SIREN
+    if (registrationNumber && /\d{9}/.test(registrationNumber)) {
+      const match = registrationNumber.match(/(\d{9})/);
+      if (match) return match[1];
+    }
+    
+    // Si pas de numéro d'immatriculation, essayer d'extraire depuis le texte
     if (announcement.texte) {
       // Rechercher un numéro SIREN (9 chiffres)
       const sirenMatch = announcement.texte.match(/SIREN[:\s]*(\d{9})/i);
@@ -46,16 +52,6 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
       // Rechercher des numéros dans le texte (patterns plus larges)
       const numberMatch = announcement.texte.match(/(\d{9})/);
       if (numberMatch) return numberMatch[1];
-      
-      // Essayer d'extraire depuis le numéro d'immatriculation
-      const immatMatch = announcement.texte.match(/N° immatriculation:\s*(\d{9})/);
-      if (immatMatch) return immatMatch[1];
-    }
-    
-    // Essayer d'extraire depuis d'autres champs si disponibles
-    if (registrationNumber && /\d{9}/.test(registrationNumber)) {
-      const match = registrationNumber.match(/(\d{9})/);
-      if (match) return match[1];
     }
     
     return null;
