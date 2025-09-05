@@ -13,6 +13,13 @@ export class BodaccApiService {
   }
 
   /**
+   * Échappe les quotes simples pour les valeurs SQL dans where
+   */
+  private static escapeSqlValue(value: string): string {
+    return value.replace(/'/g, "''");
+  }
+
+  /**
    * Construit les paramètres de requête pour récupérer toutes les annonces avec filtres
    */
   private static buildQueryParams(filters: SearchFilters): URLSearchParams {
@@ -42,26 +49,29 @@ export class BodaccApiService {
     const dateTo = (filters.dateTo || '').trim();
     
     if (dateFrom && dateTo) {
-      whereConditions.push(`dateparution >= "${dateFrom}" AND dateparution <= "${dateTo}"`);
+      whereConditions.push(`dateparution >= '${dateFrom}' AND dateparution <= '${dateTo}'`);
     } else if (dateFrom) {
-      whereConditions.push(`dateparution >= "${dateFrom}"`);
+      whereConditions.push(`dateparution >= '${dateFrom}'`);
     } else if (dateTo) {
-      whereConditions.push(`dateparution <= "${dateTo}"`);
+      whereConditions.push(`dateparution <= '${dateTo}'`);
     }
     
     // Filtre tribunal
     if (filters.tribunal?.trim()) {
-      whereConditions.push(`tribunal = "${filters.tribunal.trim()}"`);
+      const escapedTribunal = this.escapeSqlValue(filters.tribunal.trim());
+      whereConditions.push(`tribunal = '${escapedTribunal}'`);
     }
     
     // Filtre catégorie
     if (filters.category?.trim()) {
-      whereConditions.push(`typeavis_lib = "${filters.category.trim()}"`);
+      const escapedCategory = this.escapeSqlValue(filters.category.trim());
+      whereConditions.push(`typeavis_lib = '${escapedCategory}'`);
     }
     
     // Filtre sous-catégorie
     if (filters.subCategory?.trim()) {
-      whereConditions.push(`familleavis_lib = "${filters.subCategory.trim()}"`);
+      const escapedSubCategory = this.escapeSqlValue(filters.subCategory.trim());
+      whereConditions.push(`familleavis_lib = '${escapedSubCategory}'`);
     }
     
     // Appliquer toutes les conditions where
