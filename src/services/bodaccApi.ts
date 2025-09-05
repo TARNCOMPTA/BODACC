@@ -31,53 +31,17 @@ export class BodaccApiService {
     params.set('limit', String(limit));
     params.set('offset', String((page - 1) * limit));
     
-    // Tri - utiliser les noms de champs corrects
-    const sortField = filters.sort?.trim() || '-dateparution';
-    params.set('order_by', sortField);
+    // Tri simplifié pour debug
+    params.set('order_by', 'dateparution');
     
-    // 1. Recherche textuelle uniquement dans q (plein-texte)
+    // Recherche textuelle simple
     const qText = (filters.query || '').trim();
     if (qText) {
       params.set('q', this.escapeLucene(qText));
     }
     
-    // 2. Filtres structurés dans where (syntaxe SQL-like)
-    const whereConditions: string[] = [];
-    
-    // Filtres de dates
-    const dateFrom = (filters.dateFrom || '').trim();
-    const dateTo = (filters.dateTo || '').trim();
-    
-    if (dateFrom && dateTo) {
-      whereConditions.push(`dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
-    } else if (dateFrom) {
-      whereConditions.push(`dateparution >= date'${dateFrom}'`);
-    } else if (dateTo) {
-      whereConditions.push(`dateparution <= date'${dateTo}'`);
-    }
-    
-    // Filtre tribunal
-    if (filters.tribunal?.trim()) {
-      const escapedTribunal = this.escapeSqlValue(filters.tribunal.trim());
-      whereConditions.push(`tribunal = '${escapedTribunal}'`);
-    }
-    
-    // Filtre catégorie
-    if (filters.category?.trim()) {
-      const escapedCategory = this.escapeSqlValue(filters.category.trim());
-      whereConditions.push(`typeavis_lib = '${escapedCategory}'`);
-    }
-    
-    // Filtre sous-catégorie
-    if (filters.subCategory?.trim()) {
-      const escapedSubCategory = this.escapeSqlValue(filters.subCategory.trim());
-      whereConditions.push(`familleavis_lib = '${escapedSubCategory}'`);
-    }
-    
-    // Appliquer toutes les conditions where
-    if (whereConditions.length > 0) {
-      params.set('where', whereConditions.join(' AND '));
-    }
+    // Temporairement désactiver les filtres where pour debug
+    // TODO: réactiver après avoir identifié le problème
     
     return params;
   }
