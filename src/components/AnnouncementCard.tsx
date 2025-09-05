@@ -47,6 +47,17 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
                 </span>
               )}
             </h3>
+            {(announcement.adresse || announcement.ville || announcement.code_postal) && (
+              <div className="text-sm text-gray-600 mb-2">
+                <MapPin className="w-4 h-4 inline mr-1" />
+                {announcement.adresse && <span>{announcement.adresse}</span>}
+                {(announcement.code_postal || announcement.ville) && (
+                  <span className={announcement.adresse ? " • " : ""}>
+                    {announcement.code_postal} {announcement.ville}
+                  </span>
+                )}
+              </div>
+            )}
             <div className="flex items-center text-sm text-blue-600 mb-2">
               <Building2 className="w-4 h-4 mr-1" />
               <span className="font-medium">{announcement.categorie}</span>
