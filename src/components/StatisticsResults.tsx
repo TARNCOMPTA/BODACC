@@ -224,7 +224,50 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                   });
                   
                   const sortedYears = Array.from(years).sort();
-                  const sortedPeriodTypes = Array.from(periodTypes).sort();
+                  
+                  // Ordre chronologique pour les mois
+                  const monthOrder = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+                  const quarterOrder = ['T1', 'T2', 'T3', 'T4'];
+                  
+                  const sortedPeriodTypes = Array.from(periodTypes).sort((a, b) => {
+                    // Si ce sont des mois, utiliser l'ordre chronologique
+                    if (monthOrder.includes(a) && monthOrder.includes(b)) {
+                      return monthOrder.indexOf(a) - monthOrder.indexOf(b);
+                    }
+                    // Si ce sont des trimestres, utiliser l'ordre chronologique
+                    if (quarterOrder.includes(a) && quarterOrder.includes(b)) {
+                      return quarterOrder.indexOf(a) - quarterOrder.indexOf(b);
+                    }
+                    // Sinon, tri alphabétique
+                    return a.localeCompare(b);
+                  });
+                  
+                  // Fonction pour obtenir le libellé complet
+                  const getFullLabel = (periodType: string) => {
+                    const monthLabels: Record<string, string> = {
+                      'Jan': 'Janvier',
+                      'Fév': 'Février', 
+                      'Mar': 'Mars',
+                      'Avr': 'Avril',
+                      'Mai': 'Mai',
+                      'Jun': 'Juin',
+                      'Jul': 'Juillet',
+                      'Aoû': 'Août',
+                      'Sep': 'Septembre',
+                      'Oct': 'Octobre',
+                      'Nov': 'Novembre',
+                      'Déc': 'Décembre'
+                    };
+                    
+                    const quarterLabels: Record<string, string> = {
+                      'T1': '1er Trimestre',
+                      'T2': '2ème Trimestre', 
+                      'T3': '3ème Trimestre',
+                      'T4': '4ème Trimestre'
+                    };
+                    
+                    return monthLabels[periodType] || quarterLabels[periodType] || periodType;
+                  };
                   
                   // Calculer les totaux par année
                   const yearTotals: Record<string, number> = {};
@@ -257,7 +300,7 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                         {sortedPeriodTypes.map(periodType => (
                           <tr key={periodType} className="hover:bg-gray-50">
                             <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {periodType}
+                              {getFullLabel(periodType)}
                             </td>
                             {sortedYears.map(year => {
                               const currentValue = yearlyData[periodType]?.[year] || 0;
