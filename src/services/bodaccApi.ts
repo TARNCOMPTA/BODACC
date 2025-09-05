@@ -240,7 +240,7 @@ export class BodaccApiService {
         const typeavisFacetGroup = data.facet_groups.find((group: any) => group.name === 'typeavis_lib');
         if (typeavisFacetGroup && typeavisFacetGroup.facets && Array.isArray(typeavisFacetGroup.facets)) {
           return typeavisFacetGroup.facets
-            .map((facet: any) => facet.name)
+            .map((facet: any) => facet.name || facet.value)
             .filter((name: string) => name && name.trim())
             .sort();
         }
