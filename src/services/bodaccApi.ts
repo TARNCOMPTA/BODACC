@@ -115,29 +115,10 @@ export class BodaccApiService {
       
       clearTimeout(timeoutId);
       
-      // Calculer les tops et pourcentages
-      const topCategories = Object.entries(globalCategories)
-        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-      
-      const topDepartments = Object.entries(globalDepartments)
-        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-      
-      const topSubCategories = Object.entries(globalSubCategories)
-        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-      
       return {
         periods: statisticsPeriods,
         totalCount,
-        averagePerPeriod: totalCount / periods.length,
-        topCategories,
-        topDepartments,
-        topSubCategories
+        averagePerPeriod: totalCount / periods.length
       };
       
     } catch (error) {

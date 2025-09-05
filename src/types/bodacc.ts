@@ -68,9 +68,6 @@ export interface StatisticsData {
   periods: StatisticsPeriod[];
   totalCount: number;
   averagePerPeriod: number;
-  topCategories: Array<{ name: string; count: number; percentage: number }>;
-  topDepartments: Array<{ name: string; count: number; percentage: number }>;
-  topSubCategories: Array<{ name: string; count: number; percentage: number }>;
 }
 
 export interface ApiResponse {
