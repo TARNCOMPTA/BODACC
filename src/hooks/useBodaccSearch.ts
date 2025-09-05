@@ -12,17 +12,9 @@ export function useBodaccData() {
     setIsLoading(true);
     setError(null);
     
-    // Si c'est un changement de page ou de tri, charger automatiquement
-    if ((newFilters.page !== filters.page || newFilters.sort !== filters.sort || newFilters.limit !== filters.limit) && announcements.length > 0) {
-      
-      // Tri par date de parution décroissante (plus récente en premier)
-      const sortedAnnouncements = response.results.sort((a, b) => {
-        const dateA = new Date(a.date_parution || '1900-01-01');
-        const dateB = new Date(b.date_parution || '1900-01-01');
-        return dateB.getTime() - dateA.getTime();
-      });
-      
-      setAnnouncements(sortedAnnouncements);
+    try {
+      const response = await BodaccApiService.getAnnouncements(filters);
+      setAnnouncements(response.results);
       setTotalCount(response.total_count);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue s\'est produite';
