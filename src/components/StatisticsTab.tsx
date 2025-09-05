@@ -7,9 +7,9 @@ import { StatisticsFilters } from '../types/bodacc';
 
 export function StatisticsTab() {
   const today = new Date();
-  const threeYearsAgo = new Date(today.getFullYear() - 3, 0, 1); // 1er janvier de l'année - 3 ans
+  const startYear = today.getFullYear() - 3;
+  const threeYearsAgoString = `${startYear}-01-01`; // Format direct pour éviter les problèmes de fuseau horaire
   const todayString = today.toISOString().split('T')[0];
-  const threeYearsAgoString = threeYearsAgo.toISOString().split('T')[0];
   
   const [filters, setFilters] = useState<StatisticsFilters>({
     departement: '',
