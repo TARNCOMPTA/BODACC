@@ -13,10 +13,10 @@ export class BodaccApiService {
   }
 
   /**
-   * Échappe les quotes simples pour les valeurs SQL dans where
+   * Échappe les quotes simples pour les valeurs ODSQL dans where
    */
   private static escapeSqlValue(value: string): string {
-    return value.replace(/'/g, "''");
+    return value.replace(/'/g, "\\'");
   }
 
   /**
