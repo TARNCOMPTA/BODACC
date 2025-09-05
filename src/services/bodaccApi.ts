@@ -25,23 +25,9 @@ export class BodaccApiService {
   private static buildQueryParams(filters: SearchFilters): URLSearchParams {
     const params = new URLSearchParams();
     
-    // Pagination sécurisée
-    const limit = Math.max(1, Math.min(100, Number(filters.limit) || 20));
-    const page = Math.max(1, Number(filters.page) || 1);
-    params.set('limit', String(limit));
-    params.set('offset', String((page - 1) * limit));
-    
-    // Tri simplifié pour debug
-    params.set('order_by', 'dateparution');
-    
-    // Recherche textuelle simple
-    const qText = (filters.query || '').trim();
-    if (qText) {
-      params.set('q', this.escapeLucene(qText));
-    }
-    
-    // Temporairement désactiver les filtres where pour debug
-    // TODO: réactiver après avoir identifié le problème
+    // Requête ultra-simple pour debug
+    params.set('limit', '10');
+    params.set('offset', '0');
     
     return params;
   }
@@ -57,10 +43,9 @@ export class BodaccApiService {
       const params = this.buildQueryParams(filters);
       const url = `${BODACC_API_BASE}?${params.toString()}`;
       
-      // Log uniquement en développement
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🌐 URL BODACC:', url);
-      }
+      // Logs de debug détaillés
+      console.log('🌐 URL BODACC:', url);
+      console.log('📋 Paramètres:', Object.fromEntries(params));
       
       const response = await fetch(url, {
         signal: controller.signal,
@@ -69,24 +54,28 @@ export class BodaccApiService {
         }
       });
       
+      console.log('📡 Status:', response.status);
+      console.log('📡 Headers:', Object.fromEntries(response.headers));
+      
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur réponse:', errorText);
         if (response.status === 429) {
           throw new Error('Trop de requêtes simultanées. Veuillez patienter quelques instants avant de relancer la recherche.');
         }
-        throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
+        throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText} - ${errorText}`);
       }
       
       const data = await response.json();
       
-      // Logs de debug en développement uniquement
-      if (process.env.NODE_ENV === 'development') {
-        console.log('📊 Total résultats:', data.total_count);
-        console.log('📋 Résultats retournés:', data.results?.length || 0);
-        if (data.results?.[0]) {
-          console.log('🔍 Champs disponibles:', Object.keys(data.results[0].record.fields || {}));
-        }
+      // Logs de debug détaillés
+      console.log('📊 Total résultats:', data.total_count);
+      console.log('📋 Résultats retournés:', data.results?.length || 0);
+      console.log('🔍 Structure complète:', JSON.stringify(data, null, 2));
+      if (data.results?.[0]) {
+        console.log('🔍 Champs disponibles:', Object.keys(data.results[0].record?.fields || {}));
       }
       
       const announcements = (data.results || []).map((result: any) => this.mapRecord(result.record));
@@ -121,11 +110,9 @@ export class BodaccApiService {
       const params = new URLSearchParams();
       params.set('limit', '0'); // On ne veut que les facettes, pas les données
       
-      const url = `${BODACC_API_BASE}?facet=typeavis_lib&${params.toString()}`;
+      const url = `${BODACC_API_BASE}?${params.toString()}&facet=typeavis_lib`;
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🏷️ URL Catégories:', url);
-      }
+      console.log('🏷️ URL Catégories:', url);
       
       const response = await fetch(url, {
         signal: controller.signal,
@@ -142,9 +129,7 @@ export class BodaccApiService {
       
       const data = await response.json();
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🏷️ Données facettes récupérées:', data.facet_groups);
-      }
+      console.log('🏷️ Données facettes récupérées:', JSON.stringify(data, null, 2));
       
       // Extraire les catégories depuis les facettes
       if (data.facet_groups && data.facet_groups.length > 0) {
@@ -170,9 +155,7 @@ export class BodaccApiService {
     } catch (error) {
       clearTimeout(timeoutId);
       
-      if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Erreur lors du chargement des catégories:', error);
-      }
+      console.error('❌ Erreur lors du chargement des catégories:', error);
       
       // Retourner une liste par défaut en cas d'erreur
       return [
