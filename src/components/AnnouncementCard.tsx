@@ -35,7 +35,9 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   const getSiretNumber = () => {
     // Utiliser directement le numéro d'immatriculation comme SIREN
     if (registrationNumber && /\d{9}/.test(registrationNumber)) {
-      const match = registrationNumber.match(/(\d{9})/);
+      // Nettoyer les espaces et caractères non numériques
+      const cleanedNumber = registrationNumber.replace(/\s+/g, '').replace(/[^\d]/g, '');
+      const match = cleanedNumber.match(/(\d{9})/);
       if (match) return match[1];
     }
     
