@@ -387,6 +387,11 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                               </td>
                             );
                           })}
+                          <td className="px-4 py-4 whitespace-nowrap text-center">
+                            <div className="text-sm font-bold text-gray-900">
+                              {Math.round(generalAverage).toLocaleString('fr-FR')}
+                            </div>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
