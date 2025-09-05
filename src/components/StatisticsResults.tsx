@@ -428,6 +428,25 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
             </div>
             
             <div>
+              <h4 className="font-medium text-gray-800 mb-2">Période la plus faible</h4>
+              <div className="bg-white rounded-lg p-4 border border-red-100">
+                {(() => {
+                  const minPeriod = data.periods.reduce((min, period) => 
+                    period.count < min.count ? period : min
+                  );
+                  return (
+                    <div>
+                      <p className="text-lg font-semibold text-red-600">{minPeriod.period}</p>
+                      <p className="text-sm text-gray-600">{minPeriod.count.toLocaleString('fr-FR')} annonces</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
               <h4 className="font-medium text-gray-800 mb-2">Évolution générale</h4>
               <div className="bg-white rounded-lg p-4 border border-blue-100">
                 {(() => {
@@ -457,6 +476,33 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                           {globalEvolution > 0 ? 'Hausse' : globalEvolution < 0 ? 'Baisse' : 'Stable'}
                         </p>
                       </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">Écart min/max</h4>
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                {(() => {
+                  const maxPeriod = data.periods.reduce((max, period) => 
+                    period.count > max.count ? period : max
+                  );
+                  const minPeriod = data.periods.reduce((min, period) => 
+                    period.count < min.count ? period : min
+                  );
+                  const difference = maxPeriod.count - minPeriod.count;
+                  const ratio = minPeriod.count > 0 ? (maxPeriod.count / minPeriod.count) : 0;
+                  
+                  return (
+                    <div>
+                      <p className="text-lg font-semibold text-purple-600">
+                        {difference.toLocaleString('fr-FR')} annonces
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Ratio: x{ratio.toFixed(1)}
+                      </p>
                     </div>
                   );
                 })()}
