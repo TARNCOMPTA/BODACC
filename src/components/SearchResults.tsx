@@ -146,7 +146,7 @@ export function SearchResults({
               <label htmlFor="limit" className="text-sm text-gray-600">Afficher:</label>
               <select
                 id="limit"
-                value={filters.limit}
+                value={filters.limit || 20}
                 onChange={(e) => onFiltersChange({ 
                   ...filters, 
                   limit: parseInt(e.target.value),
