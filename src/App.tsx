@@ -14,7 +14,7 @@ function App() {
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main>
-        {activeTab === 'home' && <HomeTab />}
+        {activeTab === 'home' && <HomeTab onTabChange={setActiveTab} />}
         {activeTab === 'search' && <SearchTab />}
         {activeTab === 'statistics' && <StatisticsTab />}
       </main>

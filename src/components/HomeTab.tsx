@@ -1,7 +1,11 @@
 import React from 'react';
 import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
 
-export function HomeTab() {
+interface HomeTabProps {
+  onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
+}
+
+export function HomeTab({ onTabChange }: HomeTabProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Hero Section */}
@@ -228,12 +232,18 @@ export function HomeTab() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg">
+            <button 
+              onClick={() => onTabChange('search')}
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
+            >
               <Search className="w-5 h-5 mr-2" />
               Rechercher des annonces
             </button>
             
-            <button className="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg">
+            <button 
+              onClick={() => onTabChange('statistics')}
+              className="inline-flex items-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
+            >
               <BarChart3 className="w-5 h-5 mr-2" />
               Voir les statistiques
             </button>
