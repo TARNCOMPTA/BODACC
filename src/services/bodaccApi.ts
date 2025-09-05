@@ -25,9 +25,59 @@ export class BodaccApiService {
   private static buildQueryParams(filters: SearchFilters): URLSearchParams {
     const params = new URLSearchParams();
     
-    // Requête ultra-simple pour debug
-    params.set('limit', '10');
-    params.set('offset', '0');
+    // Pagination
+    const limit = Math.max(1, Math.min(100, filters.limit || 20));
+    const page = Math.max(1, filters.page || 1);
+    const offset = (page - 1) * limit;
+    
+    params.set('limit', limit.toString());
+    params.set('offset', offset.toString());
+    
+    // Tri
+    if (filters.sort) {
+      params.set('order_by', filters.sort);
+    }
+    
+    // Construction des conditions WHERE
+    const whereConditions: string[] = [];
+    
+    // Recherche textuelle dans plusieurs champs
+    if (filters.query && filters.query.trim()) {
+      const escapedQuery = this.escapeSqlValue(filters.query.trim());
+      whereConditions.push(`(commercant LIKE '%${escapedQuery}%' OR registre LIKE '%${escapedQuery}%')`);
+    }
+    
+    // Filtre par tribunal
+    if (filters.tribunal && filters.tribunal.trim()) {
+      const escapedTribunal = this.escapeSqlValue(filters.tribunal.trim());
+      whereConditions.push(`tribunal = '${escapedTribunal}'`);
+    }
+    
+    // Filtre par catégorie (typeavis_lib)
+    if (filters.category && filters.category.trim()) {
+      const escapedCategory = this.escapeSqlValue(filters.category.trim());
+      whereConditions.push(`typeavis_lib = '${escapedCategory}'`);
+    }
+    
+    // Filtre par sous-catégorie (familleavis_lib)
+    if (filters.subCategory && filters.subCategory.trim()) {
+      const escapedSubCategory = this.escapeSqlValue(filters.subCategory.trim());
+      whereConditions.push(`familleavis_lib = '${escapedSubCategory}'`);
+    }
+    
+    // Filtres de dates
+    if (filters.dateFrom && filters.dateFrom.trim()) {
+      whereConditions.push(`dateparution >= date'${filters.dateFrom}'`);
+    }
+    
+    if (filters.dateTo && filters.dateTo.trim()) {
+      whereConditions.push(`dateparution <= date'${filters.dateTo}'`);
+    }
+    
+    // Ajouter la clause WHERE si on a des conditions
+    if (whereConditions.length > 0) {
+      params.set('where', whereConditions.join(' AND '));
+    }
     
     return params;
   }
@@ -72,13 +122,12 @@ export class BodaccApiService {
       
       // Logs de debug détaillés
       console.log('📊 Total résultats:', data.total_count);
-      console.log('📋 Résultats retournés:', data.results?.length || 0);
-      console.log('🔍 Structure complète:', JSON.stringify(data, null, 2));
+      console.log('📋 Résultats retournés:', data.records?.length || 0);
       if (data.results?.[0]) {
         console.log('🔍 Champs disponibles:', Object.keys(data.results[0].record?.fields || {}));
       }
       
-      const announcements = (data.results || []).map((result: any) => this.mapRecord(result.record));
+      const announcements = (data.records || []).map((result: any) => this.mapRecord(result.record));
       
       return {
         total_count: data.total_count || 0,
@@ -175,27 +224,78 @@ export class BodaccApiService {
   private static mapRecord(record: any): BodaccAnnouncement {
     const fields = record.fields || {};
     
+    // Construire l'adresse complète
+    const adresseParts = [];
+    if (fields.numerovoie) adresseParts.push(fields.numerovoie);
+    if (fields.typevoie) adresseParts.push(fields.typevoie);
+    if (fields.nomvoie) adresseParts.push(fields.nomvoie);
+    const adresse = adresseParts.join(' ') || '';
+    
     return {
       id: record.recordid || `bodacc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      tribunal: fields.tribunal || '',
-      numero_parution: fields.numeroparution || fields.parution || '',
+      tribunal: fields.tribunal || fields.nomgreffe || '',
+      numero_parution: fields.parution || '',
       date_parution: fields.dateparution || '',
       numero_annonce: fields.numeroannonce || '',
       categorie: fields.typeavis_lib || fields.typeavis || '',
       sous_categorie: fields.familleavis_lib || fields.familleavis || '',
       libelle: fields.typeavis_lib || '',
-      type: fields.publicationavis || fields.publicationavis_facette || '',
+      type: fields.publicationavis || '',
       denomination: fields.commercant || fields.denomination || 'Dénomination non spécifiée',
-      adresse: fields.adresse || '',
+      adresse: adresse,
       code_postal: fields.cp || '',
       ville: fields.ville || '',
-      departement: fields.departement || '',
-      region: fields.region || '',
+      departement: fields.departement_nom_officiel || fields.departement || '',
+      region: fields.region_nom_officiel || fields.region || '',
       activite: fields.activite || '',
       capital: fields.capital || '',
       devise: 'EUR', // Par défaut EUR pour la France
       date_jugement: fields.datejugement || '',
-      texte: fields.texte || fields.contenu || ''
+      texte: this.extractTextFromJson(fields) || ''
     };
+  }
+  
+  /**
+   * Extrait le texte lisible depuis les champs JSON complexes
+   */
+  private static extractTextFromJson(fields: any): string {
+    const textParts: string[] = [];
+    
+    // Extraire les informations des personnes
+    if (fields.listepersonnes) {
+      try {
+        const personnes = JSON.parse(fields.listepersonnes);
+        if (personnes.personne) {
+          const p = personnes.personne;
+          if (p.denomination) textParts.push(`Dénomination: ${p.denomination}`);
+          if (p.formeJuridique) textParts.push(`Forme juridique: ${p.formeJuridique}`);
+          if (p.numeroImmatriculation?.numeroIdentification) {
+            textParts.push(`N° immatriculation: ${p.numeroImmatriculation.numeroIdentification}`);
+          }
+          if (p.adresseSiegeSocial) {
+            const addr = p.adresseSiegeSocial;
+            const addrParts = [addr.numeroVoie, addr.typeVoie, addr.nomVoie].filter(Boolean);
+            if (addrParts.length > 0) {
+              textParts.push(`Adresse: ${addrParts.join(' ')}, ${addr.codePostal} ${addr.ville}`);
+            }
+          }
+        }
+      } catch (e) {
+        // Ignorer les erreurs de parsing JSON
+      }
+    }
+    
+    // Extraire les informations de dépôt
+    if (fields.depot) {
+      try {
+        const depot = JSON.parse(fields.depot);
+        if (depot.dateCloture) textParts.push(`Date de clôture: ${depot.dateCloture}`);
+        if (depot.typeDepot) textParts.push(`Type de dépôt: ${depot.typeDepot}`);
+      } catch (e) {
+        // Ignorer les erreurs de parsing JSON
+      }
+    }
+    
+    return textParts.join('\n');
   }
 }
