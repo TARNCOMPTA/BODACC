@@ -23,6 +23,17 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
     return `${amount.toLocaleString('fr-FR')} ${devise || '€'}`;
   };
 
+  const getRegistrationNumber = () => {
+    // Essayer d'extraire le numéro d'immatriculation depuis listepersonnes
+    if (announcement.texte && announcement.texte.includes('N° immatriculation:')) {
+      const match = announcement.texte.match(/N° immatriculation:\s*([^\n]+)/);
+      if (match) return match[1].trim();
+    }
+    return null;
+  };
+
+  const registrationNumber = getRegistrationNumber();
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
       <div className="flex flex-col space-y-4">
@@ -30,6 +41,11 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {announcement.denomination || 'Dénomination non spécifiée'}
+              {registrationNumber && (
+                <span className="ml-2 text-sm font-normal text-gray-600">
+                  ({registrationNumber})
+                </span>
+              )}
             </h3>
             <div className="flex items-center text-sm text-blue-600 mb-2">
               <Building2 className="w-4 h-4 mr-1" />
