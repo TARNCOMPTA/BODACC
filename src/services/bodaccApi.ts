@@ -31,7 +31,7 @@ export class BodaccApiService {
     params.set('limit', String(limit));
     params.set('offset', String((page - 1) * limit));
     
-    // Tri par date de parution décroissante
+    // Tri - utiliser les noms de champs corrects
     const sortField = filters.sort?.trim() || '-dateparution';
     params.set('order_by', sortField);
     
@@ -49,11 +49,11 @@ export class BodaccApiService {
     const dateTo = (filters.dateTo || '').trim();
     
     if (dateFrom && dateTo) {
-      whereConditions.push(`dateparution >= '${dateFrom}' AND dateparution <= '${dateTo}'`);
+      whereConditions.push(`dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
     } else if (dateFrom) {
-      whereConditions.push(`dateparution >= '${dateFrom}'`);
+      whereConditions.push(`dateparution >= date'${dateFrom}'`);
     } else if (dateTo) {
-      whereConditions.push(`dateparution <= '${dateTo}'`);
+      whereConditions.push(`dateparution <= date'${dateTo}'`);
     }
     
     // Filtre tribunal
