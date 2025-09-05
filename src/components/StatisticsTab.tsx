@@ -7,15 +7,15 @@ import { StatisticsFilters } from '../types/bodacc';
 
 export function StatisticsTab() {
   const today = new Date();
-  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+  const threeYearsAgo = new Date(today.getFullYear() - 3, 0, 1); // 1er janvier de l'année - 3 ans
   const todayString = today.toISOString().split('T')[0];
-  const oneYearAgoString = oneYearAgo.toISOString().split('T')[0];
+  const threeYearsAgoString = threeYearsAgo.toISOString().split('T')[0];
   
   const [filters, setFilters] = useState<StatisticsFilters>({
     departement: '',
     category: '',
     subCategory: '',
-    dateFrom: oneYearAgoString,
+    dateFrom: threeYearsAgoString,
     dateTo: todayString,
     periodicity: 'month'
   });
