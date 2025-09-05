@@ -83,7 +83,7 @@ function App() {
             />
           )}
           
-          {(announcements.length > 0 || isLoading) && (
+          {(announcements.length > 0 || isLoading || (!isLoading && announcements.length === 0 && (filters.query || filters.departement || filters.category || filters.subCategory))) && (
             <SearchResults
               announcements={announcements}
               totalCount={totalCount}
