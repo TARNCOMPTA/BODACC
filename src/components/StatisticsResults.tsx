@@ -188,56 +188,151 @@ export function StatisticsResults({ data, isLoading }: StatisticsResultsProps) {
                 </div>
               </summary>
               <div className="mt-4 overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Période
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nombre d'annonces
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Évolution
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {data.periods.map((period, index) => {
-                      const previousCount = index > 0 ? data.periods[index - 1].count : period.count;
-                      const evolution = index > 0 ? ((period.count - previousCount) / previousCount * 100) : 0;
-                      
-                      return (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {period.period}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {period.count.toLocaleString('fr-FR')}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {index > 0 && (
-                              <span className={`inline-flex items-center space-x-1 ${
-                                evolution > 0 ? 'text-green-600' : evolution < 0 ? 'text-red-600' : 'text-gray-500'
-                              }`}>
-                                {evolution > 0 ? (
-                                  <TrendingUp className="w-4 h-4" />
-                                ) : evolution < 0 ? (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                  </svg>
-                                ) : (
-                                  <div className="w-4 h-4" />
-                                )}
-                                <span>{Math.abs(evolution).toFixed(1)}%</span>
-                              </span>
-                            )}
-                          </td>
+                {(() => {
+                  // Organiser les données par année
+                  const yearlyData: Record<string, Record<string, number>> = {};
+                  const years = new Set<string>();
+                  const periodTypes = new Set<string>();
+                  
+                  data.periods.forEach(period => {
+                    let year: string;
+                    let periodType: string;
+                    
+                    if (period.period.includes('T')) {
+                      // Format trimestre: "T1 2024"
+                      const parts = period.period.split(' ');
+                      year = parts[1];
+                      periodType = parts[0];
+                    } else if (period.period.includes(' ')) {
+                      // Format mois: "Jan 2024"
+                      const parts = period.period.split(' ');
+                      year = parts[1];
+                      periodType = parts[0];
+                    } else {
+                      // Format année: "2024"
+                      year = period.period;
+                      periodType = 'Année';
+                    }
+                    
+                    years.add(year);
+                    periodTypes.add(periodType);
+                    
+                    if (!yearlyData[periodType]) {
+                      yearlyData[periodType] = {};
+                    }
+                    yearlyData[periodType][year] = period.count;
+                  });
+                  
+                  const sortedYears = Array.from(years).sort();
+                  const sortedPeriodTypes = Array.from(periodTypes).sort();
+                  
+                  // Calculer les totaux par année
+                  const yearTotals: Record<string, number> = {};
+                  sortedYears.forEach(year => {
+                    yearTotals[year] = sortedPeriodTypes.reduce((sum, periodType) => {
+                      return sum + (yearlyData[periodType]?.[year] || 0);
+                    }, 0);
+                  });
+                  
+                  return (
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Période
+                          </th>
+                          {sortedYears.map(year => (
+                            <th key={year} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <div>{year}</div>
+                              {sortedYears.indexOf(year) > 0 && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  vs {sortedYears[sortedYears.indexOf(year) - 1]}
+                                </div>
+                              )}
+                            </th>
+                          ))}
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {sortedPeriodTypes.map(periodType => (
+                          <tr key={periodType} className="hover:bg-gray-50">
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {periodType}
+                            </td>
+                            {sortedYears.map(year => {
+                              const currentValue = yearlyData[periodType]?.[year] || 0;
+                              const previousYearIndex = sortedYears.indexOf(year) - 1;
+                              const previousValue = previousYearIndex >= 0 
+                                ? yearlyData[periodType]?.[sortedYears[previousYearIndex]] || 0 
+                                : 0;
+                              const evolution = previousValue > 0 ? ((currentValue - previousValue) / previousValue * 100) : 0;
+                              
+                              return (
+                                <td key={year} className="px-4 py-4 whitespace-nowrap text-center">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {currentValue.toLocaleString('fr-FR')}
+                                  </div>
+                                  {previousYearIndex >= 0 && currentValue > 0 && (
+                                    <div className={`text-xs flex items-center justify-center space-x-1 mt-1 ${
+                                      evolution > 0 ? 'text-green-600' : evolution < 0 ? 'text-red-600' : 'text-gray-500'
+                                    }`}>
+                                      {evolution > 0 ? (
+                                        <TrendingUp className="w-3 h-3" />
+                                      ) : evolution < 0 ? (
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                        </svg>
+                                      ) : (
+                                        <div className="w-3 h-3" />
+                                      )}
+                                      <span>{Math.abs(evolution).toFixed(1)}%</span>
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                        {/* Ligne de total */}
+                        <tr className="bg-gray-100 font-semibold border-t-2 border-gray-300">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                            TOTAL
+                          </td>
+                          {sortedYears.map(year => {
+                            const currentTotal = yearTotals[year];
+                            const previousYearIndex = sortedYears.indexOf(year) - 1;
+                            const previousTotal = previousYearIndex >= 0 ? yearTotals[sortedYears[previousYearIndex]] : 0;
+                            const totalEvolution = previousTotal > 0 ? ((currentTotal - previousTotal) / previousTotal * 100) : 0;
+                            
+                            return (
+                              <td key={year} className="px-4 py-4 whitespace-nowrap text-center">
+                                <div className="text-sm font-bold text-gray-900">
+                                  {currentTotal.toLocaleString('fr-FR')}
+                                </div>
+                                {previousYearIndex >= 0 && currentTotal > 0 && (
+                                  <div className={`text-xs flex items-center justify-center space-x-1 mt-1 font-semibold ${
+                                    totalEvolution > 0 ? 'text-green-600' : totalEvolution < 0 ? 'text-red-600' : 'text-gray-500'
+                                  }`}>
+                                    {totalEvolution > 0 ? (
+                                      <TrendingUp className="w-3 h-3" />
+                                    ) : totalEvolution < 0 ? (
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                      </svg>
+                                    ) : (
+                                      <div className="w-3 h-3" />
+                                    )}
+                                    <span>{Math.abs(totalEvolution).toFixed(1)}%</span>
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      </tbody>
+                    </table>
+                  );
+                })()}
               </div>
             </details>
           </div>
