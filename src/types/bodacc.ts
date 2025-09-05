@@ -47,6 +47,32 @@ export interface SearchFilters {
   sort?: string;
 }
 
+export interface StatisticsFilters {
+  departement: string;
+  category: string;
+  subCategory: string;
+  dateFrom: string;
+  dateTo: string;
+  periodicity: 'month' | 'quarter' | 'year';
+}
+
+export interface StatisticsPeriod {
+  period: string;
+  count: number;
+  categories: Record<string, number>;
+  departments: Record<string, number>;
+  subCategories: Record<string, number>;
+}
+
+export interface StatisticsData {
+  periods: StatisticsPeriod[];
+  totalCount: number;
+  averagePerPeriod: number;
+  topCategories: Array<{ name: string; count: number; percentage: number }>;
+  topDepartments: Array<{ name: string; count: number; percentage: number }>;
+  topSubCategories: Array<{ name: string; count: number; percentage: number }>;
+}
+
 export interface ApiResponse {
   total_count: number;
   results: BodaccAnnouncement[];

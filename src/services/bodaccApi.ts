@@ -1,4 +1,5 @@
 import { BodaccAnnouncement, SearchFilters, ApiResponse } from '../types/bodacc';
+import { StatisticsFilters, StatisticsData, StatisticsPeriod } from '../types/bodacc';
 
 const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/records';
 const BODACC_DATASET_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales';
@@ -19,6 +20,259 @@ export class BodaccApiService {
     return value.replace(/'/g, "\\'");
   }
 
+  /**
+   * Génère les périodes selon la périodicité
+   */
+  private static generatePeriods(dateFrom: string, dateTo: string, periodicity: 'month' | 'quarter' | 'year'): string[] {
+    const periods: string[] = [];
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+    
+    let current = new Date(start);
+    
+    while (current <= end) {
+      let periodKey: string;
+      
+      switch (periodicity) {
+        case 'month':
+          periodKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+          current.setMonth(current.getMonth() + 1);
+          break;
+        case 'quarter':
+          const quarter = Math.floor(current.getMonth() / 3) + 1;
+          periodKey = `${current.getFullYear()}-T${quarter}`;
+          current.setMonth(current.getMonth() + 3);
+          break;
+        case 'year':
+          periodKey = current.getFullYear().toString();
+          current.setFullYear(current.getFullYear() + 1);
+          break;
+      }
+      
+      periods.push(periodKey);
+    }
+    
+    return periods;
+  }
+
+  /**
+   * Formate le nom de la période pour l'affichage
+   */
+  private static formatPeriodName(period: string, periodicity: 'month' | 'quarter' | 'year'): string {
+    switch (periodicity) {
+      case 'month':
+        const [year, month] = period.split('-');
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        return `${monthNames[parseInt(month) - 1]} ${year}`;
+      case 'quarter':
+        const [qYear, quarter] = period.split('-T');
+        return `T${quarter} ${qYear}`;
+      case 'year':
+        return period;
+      default:
+        return period;
+    }
+  }
+
+  /**
+   * Récupère les statistiques BODACC avec filtres et périodicité
+   */
+  static async getStatistics(filters: StatisticsFilters): Promise<StatisticsData> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT * 2); // Plus de temps pour les stats
+    
+    try {
+      // Générer les périodes
+      const periods = this.generatePeriods(filters.dateFrom, filters.dateTo, filters.periodicity);
+      const statisticsPeriods: StatisticsPeriod[] = [];
+      
+      // Compteurs globaux
+      const globalCategories: Record<string, number> = {};
+      const globalDepartments: Record<string, number> = {};
+      const globalSubCategories: Record<string, number> = {};
+      let totalCount = 0;
+      
+      // Récupérer les données pour chaque période
+      for (const period of periods) {
+        const periodData = await this.getStatisticsForPeriod(filters, period, controller.signal);
+        statisticsPeriods.push(periodData);
+        
+        // Agrégation globale
+        totalCount += periodData.count;
+        
+        Object.entries(periodData.categories).forEach(([cat, count]) => {
+          globalCategories[cat] = (globalCategories[cat] || 0) + count;
+        });
+        
+        Object.entries(periodData.departments).forEach(([dept, count]) => {
+          globalDepartments[dept] = (globalDepartments[dept] || 0) + count;
+        });
+        
+        Object.entries(periodData.subCategories).forEach(([subCat, count]) => {
+          globalSubCategories[subCat] = (globalSubCategories[subCat] || 0) + count;
+        });
+      }
+      
+      clearTimeout(timeoutId);
+      
+      // Calculer les tops et pourcentages
+      const topCategories = Object.entries(globalCategories)
+        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+      
+      const topDepartments = Object.entries(globalDepartments)
+        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+      
+      const topSubCategories = Object.entries(globalSubCategories)
+        .map(([name, count]) => ({ name, count, percentage: (count / totalCount) * 100 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+      
+      return {
+        periods: statisticsPeriods,
+        totalCount,
+        averagePerPeriod: totalCount / periods.length,
+        topCategories,
+        topDepartments,
+        topSubCategories
+      };
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('La requête a pris trop de temps. Veuillez réessayer.');
+        }
+        throw error;
+      }
+      
+      throw new Error('Erreur inattendue lors du chargement des statistiques BODACC. Veuillez réessayer.');
+    }
+  }
+
+  /**
+   * Récupère les statistiques pour une période donnée
+   */
+  private static async getStatisticsForPeriod(
+    filters: StatisticsFilters, 
+    period: string, 
+    signal: AbortSignal
+  ): Promise<StatisticsPeriod> {
+    // Calculer les dates de début et fin de la période
+    const { startDate, endDate } = this.getPeriodDates(period, filters.periodicity);
+    
+    // Construire les paramètres de requête
+    const params = new URLSearchParams();
+    params.set('limit', '0'); // On ne veut que les facettes
+    params.set('facet', 'typeavis_lib');
+    params.set('facet', 'familleavis_lib');
+    params.set('facet', 'departement_nom_officiel');
+    
+    // Conditions WHERE
+    const whereConditions: string[] = [];
+    
+    // Filtres de période
+    whereConditions.push(`dateparution >= date'${startDate}'`);
+    whereConditions.push(`dateparution <= date'${endDate}'`);
+    
+    // Autres filtres
+    if (filters.departement && filters.departement.trim()) {
+      const escapedDepartement = this.escapeSqlValue(filters.departement.trim());
+      whereConditions.push(`numerodepartement = '${escapedDepartement}'`);
+    }
+    
+    if (filters.category && filters.category.trim()) {
+      const escapedCategory = this.escapeSqlValue(filters.category.trim());
+      whereConditions.push(`typeavis_lib = '${escapedCategory}'`);
+    }
+    
+    if (filters.subCategory && filters.subCategory.trim()) {
+      const escapedSubCategory = this.escapeSqlValue(filters.subCategory.trim());
+      whereConditions.push(`familleavis_lib = '${escapedSubCategory}'`);
+    }
+    
+    params.set('where', whereConditions.join(' AND '));
+    
+    const url = `${BODACC_API_BASE}?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      signal,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Extraire les facettes
+    const categories: Record<string, number> = {};
+    const departments: Record<string, number> = {};
+    const subCategories: Record<string, number> = {};
+    
+    if (data.facet_groups && Array.isArray(data.facet_groups)) {
+      data.facet_groups.forEach((group: any) => {
+        if (group.name === 'typeavis_lib' && group.facets) {
+          group.facets.forEach((facet: any) => {
+            categories[facet.name || facet.value] = facet.count;
+          });
+        } else if (group.name === 'familleavis_lib' && group.facets) {
+          group.facets.forEach((facet: any) => {
+            subCategories[facet.name || facet.value] = facet.count;
+          });
+        } else if (group.name === 'departement_nom_officiel' && group.facets) {
+          group.facets.forEach((facet: any) => {
+            departments[facet.name || facet.value] = facet.count;
+          });
+        }
+      });
+    }
+    
+    return {
+      period: this.formatPeriodName(period, filters.periodicity),
+      count: data.total_count || 0,
+      categories,
+      departments,
+      subCategories
+    };
+  }
+
+  /**
+   * Calcule les dates de début et fin pour une période donnée
+   */
+  private static getPeriodDates(period: string, periodicity: 'month' | 'quarter' | 'year'): { startDate: string; endDate: string } {
+    switch (periodicity) {
+      case 'month': {
+        const [year, month] = period.split('-');
+        const startDate = `${year}-${month}-01`;
+        const endDate = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0];
+        return { startDate, endDate };
+      }
+      case 'quarter': {
+        const [year, quarter] = period.split('-T');
+        const quarterNum = parseInt(quarter);
+        const startMonth = (quarterNum - 1) * 3 + 1;
+        const endMonth = quarterNum * 3;
+        const startDate = `${year}-${String(startMonth).padStart(2, '0')}-01`;
+        const endDate = new Date(parseInt(year), endMonth, 0).toISOString().split('T')[0];
+        return { startDate, endDate };
+      }
+      case 'year': {
+        const startDate = `${period}-01-01`;
+        const endDate = `${period}-12-31`;
+        return { startDate, endDate };
+      }
+      default:
+        throw new Error(`Périodicité non supportée: ${periodicity}`);
+    }
+  }
   /**
    * Construit les paramètres de requête pour récupérer toutes les annonces avec filtres
    */

@@ -1,7 +1,46 @@
-import React from 'react';
-import { BarChart3, TrendingUp, Building2, MapPin } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { StatisticsForm } from './StatisticsForm';
+import { StatisticsResults } from './StatisticsResults';
+import { ErrorMessage } from './ErrorMessage';
+import { useBodaccStatistics } from '../hooks/useBodaccStatistics';
+import { StatisticsFilters } from '../types/bodacc';
 
 export function StatisticsTab() {
+  const today = new Date();
+  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+  const todayString = today.toISOString().split('T')[0];
+  const oneYearAgoString = oneYearAgo.toISOString().split('T')[0];
+  
+  const [filters, setFilters] = useState<StatisticsFilters>({
+    departement: '',
+    category: '',
+    subCategory: '',
+    dateFrom: oneYearAgoString,
+    dateTo: todayString,
+    periodicity: 'month'
+  });
+
+  const { 
+    statisticsData, 
+    isLoading, 
+    error, 
+    loadStatistics,
+    clearError 
+  } = useBodaccStatistics();
+
+  const handleApplyFilters = useCallback(() => {
+    loadStatistics(filters);
+  }, [filters, loadStatistics]);
+
+  const handleFiltersChange = useCallback((newFilters: StatisticsFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    clearError();
+    handleApplyFilters();
+  }, [clearError, handleApplyFilters]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-8">
@@ -10,69 +49,30 @@ export function StatisticsTab() {
             Statistiques BODACC
           </h2>
           <p className="text-gray-600">
-            Analyse des données et tendances des annonces officielles
+            Analysez les tendances et comparez les données des annonces officielles par période
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Building2 className="w-8 h-8 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total annonces</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Ce mois</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <MapPin className="w-8 h-8 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Départements</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <BarChart3 className="w-8 h-8 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Catégories</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StatisticsForm
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          isLoading={isLoading}
+        />
         
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Statistiques en développement
-          </h3>
-          <p className="text-gray-600">
-            Les graphiques et analyses détaillées seront bientôt disponibles.
-          </p>
-        </div>
+        {error && (
+          <ErrorMessage
+            message={error}
+            onRetry={handleRetry}
+          />
+        )}
+        
+        {(statisticsData || isLoading) && (
+          <StatisticsResults
+            data={statisticsData!}
+            isLoading={isLoading}
+          />
+        )}
       </div>
     </div>
   );
