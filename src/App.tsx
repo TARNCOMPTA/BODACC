@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { TabNavigation } from './components/TabNavigation';
+import { HomeTab } from './components/HomeTab';
 import { SearchTab } from './components/SearchTab';
 import { StatisticsTab } from './components/StatisticsTab';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'search' | 'statistics'>('search');
+  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'statistics'>('home');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -13,6 +14,7 @@ function App() {
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main>
+        {activeTab === 'home' && <HomeTab />}
         {activeTab === 'search' && <SearchTab />}
         {activeTab === 'statistics' && <StatisticsTab />}
       </main>

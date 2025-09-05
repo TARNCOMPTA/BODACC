@@ -1,13 +1,18 @@
 import React from 'react';
-import { Search, BarChart3 } from 'lucide-react';
+import { Search, BarChart3, Home } from 'lucide-react';
 
 interface TabNavigationProps {
-  activeTab: 'search' | 'statistics';
-  onTabChange: (tab: 'search' | 'statistics') => void;
+  activeTab: 'home' | 'search' | 'statistics';
+  onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   const tabs = [
+    {
+      id: 'home' as const,
+      name: 'Accueil',
+      icon: Home,
+    },
     {
       id: 'search' as const,
       name: 'Recherche annonces',
