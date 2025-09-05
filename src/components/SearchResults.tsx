@@ -95,10 +95,7 @@ export function SearchResults({
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
         <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun résultat trouvé</h3>
-        <p className="text-gray-500">
-          Essayez de modifier vos filtres ou d'élargir vos critères.
-        </p>
+        <p className="text-lg text-gray-600">Aucune annonce trouvée</p>
       </div>
     );
   }
