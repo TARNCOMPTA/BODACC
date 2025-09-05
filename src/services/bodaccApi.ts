@@ -28,57 +28,45 @@ export class BodaccApiService {
     const sortField = filters.sort?.trim() || '-dateparution';
     params.set('order_by', sortField);
     
-    // 1. Recherche textuelle dans q
+    // 1. Recherche textuelle uniquement dans q (plein-texte)
     const qText = (filters.query || '').trim();
     if (qText) {
       params.set('q', this.escapeLucene(qText));
     }
     
-    // 2. Filtres de dates - utiliser la syntaxe de plage dans q
+    // 2. Filtres structurés dans where (syntaxe SQL-like)
+    const whereConditions: string[] = [];
+    
+    // Filtres de dates
     const dateFrom = (filters.dateFrom || '').trim();
     const dateTo = (filters.dateTo || '').trim();
     
-    // Construire la requête avec plage de dates si nécessaire
-    let queryParts = [];
-    if (qText) {
-      queryParts.push(this.escapeLucene(qText));
-    }
-    
     if (dateFrom && dateTo) {
-      queryParts.push(`dateparution:[${dateFrom} TO ${dateTo}]`);
+      whereConditions.push(`dateparution >= "${dateFrom}" AND dateparution <= "${dateTo}"`);
     } else if (dateFrom) {
-      queryParts.push(`dateparution:[${dateFrom} TO *]`);
+      whereConditions.push(`dateparution >= "${dateFrom}"`);
     } else if (dateTo) {
-      queryParts.push(`dateparution:[* TO ${dateTo}]`);
+      whereConditions.push(`dateparution <= "${dateTo}"`);
     }
     
-    if (queryParts.length > 0) {
-      params.set('q', queryParts.join(' AND '));
-    }
-    
-    // 3. Filtres exacts avec refine.*
+    // Filtre tribunal
     if (filters.tribunal?.trim()) {
-      params.set('where', `tribunal="${filters.tribunal.trim()}"`);
+      whereConditions.push(`tribunal = "${filters.tribunal.trim()}"`);
     }
     
+    // Filtre catégorie
     if (filters.category?.trim()) {
-      const whereClause = params.get('where');
-      const categoryFilter = `typeavis_lib="${filters.category.trim()}"`;
-      if (whereClause) {
-        params.set('where', `${whereClause} AND ${categoryFilter}`);
-      } else {
-        params.set('where', categoryFilter);
-      }
+      whereConditions.push(`typeavis_lib = "${filters.category.trim()}"`);
     }
     
+    // Filtre sous-catégorie
     if (filters.subCategory?.trim()) {
-      const whereClause = params.get('where');
-      const subCategoryFilter = `familleavis_lib="${filters.subCategory.trim()}"`;
-      if (whereClause) {
-        params.set('where', `${whereClause} AND ${subCategoryFilter}`);
-      } else {
-        params.set('where', subCategoryFilter);
-      }
+      whereConditions.push(`familleavis_lib = "${filters.subCategory.trim()}"`);
+    }
+    
+    // Appliquer toutes les conditions where
+    if (whereConditions.length > 0) {
+      params.set('where', whereConditions.join(' AND '));
     }
     
     return params;
