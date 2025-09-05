@@ -156,10 +156,8 @@ export class BodaccApiService {
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
     try {
-      const params = new URLSearchParams();
-      params.set('limit', '0'); // On ne veut que les facettes, pas les données
-      
-      const url = `${BODACC_API_BASE}?${params.toString()}&facet=typeavis_lib`;
+      // Utiliser l'endpoint des facettes directement
+      const url = `${BODACC_DATASET_BASE}/facets/typeavis_lib`;
       
       console.log('🏷️ URL Catégories:', url);
       
@@ -173,12 +171,69 @@ export class BodaccApiService {
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
+        console.warn(`Erreur API facettes: ${response.status}, utilisation de l'API records avec facettes`);
+        return await this.getCategoriesFromRecords();
       }
       
       const data = await response.json();
       
       console.log('🏷️ Données facettes récupérées:', JSON.stringify(data, null, 2));
+      
+      // Extraire les catégories depuis la réponse des facettes
+      if (data.facets && Array.isArray(data.facets)) {
+        return data.facets
+          .map((facet: any) => facet.name || facet.value)
+          .filter((name: string) => name && name.trim())
+          .sort();
+      }
+      
+      // Structure alternative possible
+      if (data.values && Array.isArray(data.values)) {
+        return data.values
+          .map((facet: any) => facet.name || facet.value)
+          .filter((name: string) => name && name.trim())
+          .sort();
+      }
+      
+      // Si aucune structure reconnue, utiliser la méthode alternative
+      return await this.getCategoriesFromRecords();
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      console.error('❌ Erreur lors du chargement des catégories:', error);
+      
+      // Essayer la méthode alternative
+      return await this.getCategoriesFromRecords();
+    }
+  }
+
+  /**
+   * Récupère les catégories en utilisant l'API records avec facettes
+   */
+  private static async getCategoriesFromRecords(): Promise<string[]> {
+    try {
+      const params = new URLSearchParams();
+      params.set('limit', '0'); // On ne veut que les facettes, pas les données
+      params.set('facet', 'typeavis_lib');
+      
+      const url = `${BODACC_API_BASE}?${params.toString()}`;
+      
+      console.log('🏷️ URL Catégories (records):', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      console.log('🏷️ Données facettes (records):', JSON.stringify(data, null, 2));
       
       // Extraire les catégories depuis les facettes
       if (data.facet_groups && data.facet_groups.length > 0) {
@@ -191,20 +246,18 @@ export class BodaccApiService {
         }
       }
       
-      // Fallback: essayer la structure alternative
-      if (data.facets) {
+      // Structure alternative
+      if (data.facets && Array.isArray(data.facets)) {
         return data.facets
           .map((facet: any) => facet.name || facet.value)
           .filter((name: string) => name && name.trim())
           .sort();
       }
       
-      return [];
+      throw new Error('Structure de facettes non reconnue');
       
     } catch (error) {
-      clearTimeout(timeoutId);
-      
-      console.error('❌ Erreur lors du chargement des catégories:', error);
+      console.error('❌ Erreur lors du chargement des catégories (records):', error);
       
       // Retourner une liste par défaut en cas d'erreur
       return [
@@ -213,7 +266,10 @@ export class BodaccApiService {
         'Dissolution',
         'Clôture de liquidation',
         'Vente de fonds de commerce',
-        'Location-gérance'
+        'Location-gérance',
+        'Procédure collective',
+        'Immatriculation',
+        'Radiation'
       ];
     }
   }
