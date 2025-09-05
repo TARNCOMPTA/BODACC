@@ -40,11 +40,14 @@ function App() {
   const handleFiltersChange = useCallback((newFilters: SearchFilters) => {
     setFilters(newFilters);
     
-    // Si c'est un changement de page, charger automatiquement
-    if (newFilters.page !== filters.page && announcements.length > 0) {
+    // Si c'est un changement de page, tri, ou limite, charger automatiquement
+    if ((newFilters.page !== filters.page || 
+         newFilters.sort !== filters.sort || 
+         newFilters.limit !== filters.limit) && 
+        announcements.length > 0) {
       loadAnnouncements(newFilters);
     }
-  }, []);
+  }, [filters, announcements.length, loadAnnouncements]);
 
   const handleRetry = useCallback(() => {
     clearError();
