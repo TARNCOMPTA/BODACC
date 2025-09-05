@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, MapPin, Calendar, FileText, Euro, Hash, Globe, FolderOpen, Users, Scale } from 'lucide-react';
+import { Building2, MapPin, Calendar, FileText, Euro, Hash, Globe, FolderOpen, Users, Scale, ExternalLink } from 'lucide-react';
 import { BodaccAnnouncement } from '../types/bodacc';
 
 interface AnnouncementCardProps {
@@ -32,7 +32,22 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
     return null;
   };
 
+  const getSiretNumber = () => {
+    // Essayer d'extraire le numéro SIRET depuis le texte
+    if (announcement.texte) {
+      // Rechercher un numéro SIRET (14 chiffres)
+      const siretMatch = announcement.texte.match(/SIRET[:\s]*(\d{14})/i);
+      if (siretMatch) return siretMatch[1];
+      
+      // Rechercher un numéro SIREN (9 chiffres) et ajouter des zéros pour faire un SIRET
+      const sirenMatch = announcement.texte.match(/SIREN[:\s]*(\d{9})/i);
+      if (sirenMatch) return sirenMatch[1] + '00000'; // SIRET = SIREN + 5 chiffres d'établissement
+    }
+    return null;
+  };
+
   const registrationNumber = getRegistrationNumber();
+  const siretNumber = getSiretNumber();
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
@@ -167,6 +182,21 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
                 </p>
               </div>
             </details>
+          </div>
+        )}
+
+        {siretNumber && (
+          <div className="pt-3 border-t border-gray-100">
+            <a
+              href={`https://data.inpi.fr/export/companies?format=pdf&ids=[%22${siretNumber}%22]`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 transition-colors"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Consulter l'avis INPI
+              <span className="ml-2 text-xs text-gray-500">({siretNumber})</span>
+            </a>
           </div>
         )}
 
