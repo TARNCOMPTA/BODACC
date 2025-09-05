@@ -246,10 +246,26 @@ export class BodaccApiService {
         }
       }
       
+      // Vérifier la structure data.parameters.facets.typeavis_lib
+      if (data.parameters && data.parameters.facets && data.parameters.facets.typeavis_lib) {
+        return data.parameters.facets.typeavis_lib
+          .map((facet: any) => facet.name || facet.value || facet)
+          .filter((name: string) => name && name.trim())
+          .sort();
+      }
+      
       // Structure alternative
       if (data.facets && Array.isArray(data.facets)) {
         return data.facets
           .map((facet: any) => facet.name || facet.value)
+          .filter((name: string) => name && name.trim())
+          .sort();
+      }
+      
+      // Vérifier si les facettes sont directement dans data
+      if (data.typeavis_lib && Array.isArray(data.typeavis_lib)) {
+        return data.typeavis_lib
+          .map((facet: any) => facet.name || facet.value || facet)
           .filter((name: string) => name && name.trim())
           .sort();
       }
