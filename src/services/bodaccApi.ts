@@ -254,6 +254,242 @@ export class BodaccApiService {
         throw new Error(`Périodicité non supportée: ${periodicity}`);
     }
   }
+
+  /**
+   * Récupère les données de météo économique par département
+   */
+  static async getEconomicWeatherData(): Promise<DepartmentData[]> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+    
+    try {
+      // Calculer les dates pour ce mois et le mois précédent
+      const now = new Date();
+      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      
+      const currentMonthStr = currentMonth.toISOString().split('T')[0];
+      const currentMonthEndStr = currentMonthEnd.toISOString().split('T')[0];
+      const previousMonthStr = previousMonth.toISOString().split('T')[0];
+      const previousMonthEndStr = previousMonthEnd.toISOString().split('T')[0];
+      
+      // Récupérer les données du mois actuel
+      const currentMonthData = await this.getDepartmentCreations(currentMonthStr, currentMonthEndStr, controller.signal);
+      
+      // Récupérer les données du mois précédent
+      const previousMonthData = await this.getDepartmentCreations(previousMonthStr, previousMonthEndStr, controller.signal);
+      
+      clearTimeout(timeoutId);
+      
+      // Combiner les données et calculer les évolutions
+      const departmentsList = this.getDepartmentsList();
+      
+      return departmentsList.map(dept => {
+        const currentCreations = currentMonthData[dept.code] || 0;
+        const previousCreations = previousMonthData[dept.code] || 0;
+        
+        let evolution = 0;
+        if (previousCreations > 0) {
+          evolution = ((currentCreations - previousCreations) / previousCreations) * 100;
+        } else if (currentCreations > 0) {
+          evolution = 100; // Si pas de données précédentes mais des créations actuelles
+        }
+        
+        let weather: 'sunny' | 'cloudy' | 'rainy';
+        if (evolution > 10) {
+          weather = 'sunny';
+        } else if (evolution < -10) {
+          weather = 'rainy';
+        } else {
+          weather = 'cloudy';
+        }
+        
+        return {
+          code: dept.code,
+          name: dept.name,
+          creations: currentCreations,
+          previousCreations,
+          evolution,
+          weather
+        };
+      });
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('La requête a pris trop de temps. Veuillez réessayer.');
+        }
+        throw error;
+      }
+      
+      throw new Error('Erreur lors du chargement des données météo économique.');
+    }
+  }
+
+  /**
+   * Récupère le nombre de créations d'entreprises par département pour une période donnée
+   */
+  private static async getDepartmentCreations(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
+    const params = new URLSearchParams();
+    params.set('limit', '0'); // On ne veut que les facettes
+    params.set('facet', 'numerodepartement');
+    
+    // Filtrer sur les créations d'entreprises
+    const whereConditions = [
+      `dateparution >= date'${dateFrom}'`,
+      `dateparution <= date'${dateTo}'`,
+      `familleavis_lib = 'Créations'` // Filtrer sur les créations
+    ];
+    
+    params.set('where', whereConditions.join(' AND '));
+    
+    const url = `${BODACC_API_BASE}?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      signal,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Extraire les données par département
+    const departmentData: Record<string, number> = {};
+    
+    if (data.facet_groups && Array.isArray(data.facet_groups)) {
+      const deptFacetGroup = data.facet_groups.find((group: any) => group.name === 'numerodepartement');
+      if (deptFacetGroup && deptFacetGroup.facets && Array.isArray(deptFacetGroup.facets)) {
+        deptFacetGroup.facets.forEach((facet: any) => {
+          const deptCode = facet.name || facet.value;
+          const count = facet.count || 0;
+          if (deptCode) {
+            departmentData[deptCode] = count;
+          }
+        });
+      }
+    }
+    
+    return departmentData;
+  }
+
+  /**
+   * Retourne la liste des départements français
+   */
+  private static getDepartmentsList() {
+    return [
+      { code: '01', name: 'Ain' },
+      { code: '02', name: 'Aisne' },
+      { code: '03', name: 'Allier' },
+      { code: '04', name: 'Alpes-de-Haute-Provence' },
+      { code: '05', name: 'Hautes-Alpes' },
+      { code: '06', name: 'Alpes-Maritimes' },
+      { code: '07', name: 'Ardèche' },
+      { code: '08', name: 'Ardennes' },
+      { code: '09', name: 'Ariège' },
+      { code: '10', name: 'Aube' },
+      { code: '11', name: 'Aude' },
+      { code: '12', name: 'Aveyron' },
+      { code: '13', name: 'Bouches-du-Rhône' },
+      { code: '14', name: 'Calvados' },
+      { code: '15', name: 'Cantal' },
+      { code: '16', name: 'Charente' },
+      { code: '17', name: 'Charente-Maritime' },
+      { code: '18', name: 'Cher' },
+      { code: '19', name: 'Corrèze' },
+      { code: '21', name: 'Côte-d\'Or' },
+      { code: '22', name: 'Côtes-d\'Armor' },
+      { code: '23', name: 'Creuse' },
+      { code: '24', name: 'Dordogne' },
+      { code: '25', name: 'Doubs' },
+      { code: '26', name: 'Drôme' },
+      { code: '27', name: 'Eure' },
+      { code: '28', name: 'Eure-et-Loir' },
+      { code: '29', name: 'Finistère' },
+      { code: '2A', name: 'Corse-du-Sud' },
+      { code: '2B', name: 'Haute-Corse' },
+      { code: '30', name: 'Gard' },
+      { code: '31', name: 'Haute-Garonne' },
+      { code: '32', name: 'Gers' },
+      { code: '33', name: 'Gironde' },
+      { code: '34', name: 'Hérault' },
+      { code: '35', name: 'Ille-et-Vilaine' },
+      { code: '36', name: 'Indre' },
+      { code: '37', name: 'Indre-et-Loire' },
+      { code: '38', name: 'Isère' },
+      { code: '39', name: 'Jura' },
+      { code: '40', name: 'Landes' },
+      { code: '41', name: 'Loir-et-Cher' },
+      { code: '42', name: 'Loire' },
+      { code: '43', name: 'Haute-Loire' },
+      { code: '44', name: 'Loire-Atlantique' },
+      { code: '45', name: 'Loiret' },
+      { code: '46', name: 'Lot' },
+      { code: '47', name: 'Lot-et-Garonne' },
+      { code: '48', name: 'Lozère' },
+      { code: '49', name: 'Maine-et-Loire' },
+      { code: '50', name: 'Manche' },
+      { code: '51', name: 'Marne' },
+      { code: '52', name: 'Haute-Marne' },
+      { code: '53', name: 'Mayenne' },
+      { code: '54', name: 'Meurthe-et-Moselle' },
+      { code: '55', name: 'Meuse' },
+      { code: '56', name: 'Morbihan' },
+      { code: '57', name: 'Moselle' },
+      { code: '58', name: 'Nièvre' },
+      { code: '59', name: 'Nord' },
+      { code: '60', name: 'Oise' },
+      { code: '61', name: 'Orne' },
+      { code: '62', name: 'Pas-de-Calais' },
+      { code: '63', name: 'Puy-de-Dôme' },
+      { code: '64', name: 'Pyrénées-Atlantiques' },
+      { code: '65', name: 'Hautes-Pyrénées' },
+      { code: '66', name: 'Pyrénées-Orientales' },
+      { code: '67', name: 'Bas-Rhin' },
+      { code: '68', name: 'Haut-Rhin' },
+      { code: '69', name: 'Rhône' },
+      { code: '70', name: 'Haute-Saône' },
+      { code: '71', name: 'Saône-et-Loire' },
+      { code: '72', name: 'Sarthe' },
+      { code: '73', name: 'Savoie' },
+      { code: '74', name: 'Haute-Savoie' },
+      { code: '75', name: 'Paris' },
+      { code: '76', name: 'Seine-Maritime' },
+      { code: '77', name: 'Seine-et-Marne' },
+      { code: '78', name: 'Yvelines' },
+      { code: '79', name: 'Deux-Sèvres' },
+      { code: '80', name: 'Somme' },
+      { code: '81', name: 'Tarn' },
+      { code: '82', name: 'Tarn-et-Garonne' },
+      { code: '83', name: 'Var' },
+      { code: '84', name: 'Vaucluse' },
+      { code: '85', name: 'Vendée' },
+      { code: '86', name: 'Vienne' },
+      { code: '87', name: 'Haute-Vienne' },
+      { code: '88', name: 'Vosges' },
+      { code: '89', name: 'Yonne' },
+      { code: '90', name: 'Territoire de Belfort' },
+      { code: '91', name: 'Essonne' },
+      { code: '92', name: 'Hauts-de-Seine' },
+      { code: '93', name: 'Seine-Saint-Denis' },
+      { code: '94', name: 'Val-de-Marne' },
+      { code: '95', name: 'Val-d\'Oise' },
+      { code: '971', name: 'Guadeloupe' },
+      { code: '972', name: 'Martinique' },
+      { code: '973', name: 'Guyane' },
+      { code: '974', name: 'La Réunion' },
+      { code: '976', name: 'Mayotte' }
+    ];
+  }
+
   /**
    * Construit les paramètres de requête pour récupérer toutes les annonces avec filtres
    */
