@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
-import { FranceMapWeather } from './FranceMapWeather';
 
 interface HomeTabProps {
   onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
@@ -42,11 +41,6 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
 
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Météo économique */}
-        <div className="mb-16">
-          <FranceMapWeather />
-        </div>
-        
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" id="fonctionnalites">
             Fonctionnalités principales
