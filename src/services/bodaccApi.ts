@@ -334,20 +334,23 @@ export class BodaccApiService {
    * Récupère le nombre de créations d'entreprises par département pour une période donnée
    */
   private static async getDepartmentCreations(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
+    console.log('🔍 Recherche créations du', dateFrom, 'au', dateTo);
+    
     const params = new URLSearchParams();
     params.set('limit', '0'); // On ne veut que les facettes
     params.set('facet', 'numerodepartement');
     
-    // Filtrer sur les créations d'entreprises
+    // Essayer différents filtres pour les créations
     const whereConditions = [
       `dateparution >= date'${dateFrom}'`,
-      `dateparution <= date'${dateTo}'`,
-      `familleavis_lib = 'Créations'` // Filtrer sur les créations
+      `dateparution <= date'${dateTo}'`
+      // Temporairement enlever le filtre sur les créations pour voir si on a des données
     ];
     
     params.set('where', whereConditions.join(' AND '));
     
     const url = `${BODACC_API_BASE}?${params.toString()}`;
+    console.log('🌐 URL météo:', url);
     
     const response = await fetch(url, {
       signal,
@@ -361,23 +364,27 @@ export class BodaccApiService {
     }
     
     const data = await response.json();
+    console.log('📊 Données météo reçues:', data);
     
     // Extraire les données par département
     const departmentData: Record<string, number> = {};
     
     if (data.facet_groups && Array.isArray(data.facet_groups)) {
       const deptFacetGroup = data.facet_groups.find((group: any) => group.name === 'numerodepartement');
+      console.log('🏛️ Facettes départements:', deptFacetGroup);
       if (deptFacetGroup && deptFacetGroup.facets && Array.isArray(deptFacetGroup.facets)) {
         deptFacetGroup.facets.forEach((facet: any) => {
           const deptCode = facet.name || facet.value;
           const count = facet.count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
+            console.log(`📍 Département ${deptCode}: ${count} annonces`);
           }
         });
       }
     }
     
+    console.log('📈 Résultat final départements:', departmentData);
     return departmentData;
   }
 
