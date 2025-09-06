@@ -343,21 +343,25 @@ export class BodaccApiService {
   private static async getDepartmentCreations(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
     console.log('🔍 Recherche créations du', dateFrom, 'au', dateTo);
     
+    // Log détaillé des paramètres
     const params = new URLSearchParams();
     params.set('limit', '0'); // On ne veut que les facettes
     params.append('facet', 'numerodepartement');
     
-    // Essayer différents filtres pour les créations
     const whereConditions = [
       `dateparution >= date'${dateFrom}'`,
       `dateparution <= date'${dateTo}'`
-      // Temporairement enlever le filtre sur les créations pour voir si on a des données
     ];
     
     params.set('where', whereConditions.join(' AND '));
     
     const url = `${BODACC_API_BASE}?${params.toString()}`;
-    console.log('🌐 URL météo:', url);
+    console.log('🌐 URL météo complète:', url);
+    console.log('📋 Paramètres détaillés:', {
+      limit: params.get('limit'),
+      facet: params.getAll('facet'),
+      where: params.get('where')
+    });
     
     const response = await fetch(url, {
       signal,
@@ -367,11 +371,16 @@ export class BodaccApiService {
     });
     
     if (!response.ok) {
+      console.error('❌ Erreur HTTP:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('❌ Détail erreur:', errorText);
       throw new Error(`Erreur API BODACC: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log('📊 Données météo reçues:', data);
+    console.log('📊 Données météo reçues (structure complète):', JSON.stringify(data, null, 2));
+    console.log('📊 Clés principales:', Object.keys(data));
+    console.log('📊 Total count:', data.total_count);
     
     // Extraire les données par département
     const departmentData: Record<string, number> = {};
@@ -381,33 +390,44 @@ export class BodaccApiService {
     
     // Structure 1: data.facet_groups
     if (data.facet_groups && Array.isArray(data.facet_groups)) {
-      console.log('🏛️ Structure facet_groups trouvée:', data.facet_groups);
+      console.log('🏛️ Structure facet_groups trouvée, nombre de groupes:', data.facet_groups.length);
+      console.log('🏛️ Noms des groupes:', data.facet_groups.map((g: any) => g.name));
+      
       const deptFacetGroup = data.facet_groups.find((group: any) => group.name === 'numerodepartement');
+      console.log('🏛️ Groupe numerodepartement trouvé:', !!deptFacetGroup);
+      
       if (deptFacetGroup && deptFacetGroup.facets && Array.isArray(deptFacetGroup.facets)) {
         facetsFound = true;
+        console.log('🏛️ Nombre de facettes département:', deptFacetGroup.facets.length);
         deptFacetGroup.facets.forEach((facet: any) => {
           const deptCode = facet.name || facet.value;
           const count = facet.count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces`);
+            console.log(`📍 Département ${deptCode}: ${count} annonces (structure: ${JSON.stringify(facet)})`);
           }
         });
+      } else {
+        console.log('🏛️ Structure facet_groups présente mais pas de facettes numerodepartement valides');
+        if (deptFacetGroup) {
+          console.log('🏛️ Structure du groupe département:', JSON.stringify(deptFacetGroup, null, 2));
+        }
       }
     }
     
     // Structure 2: data.facets
     if (!facetsFound && data.facets && Array.isArray(data.facets)) {
-      console.log('🏛️ Structure facets trouvée:', data.facets);
+      console.log('🏛️ Structure facets trouvée, nombre:', data.facets.length);
       data.facets.forEach((facet: any) => {
         if (facet.name === 'numerodepartement' && facet.facets && Array.isArray(facet.facets)) {
           facetsFound = true;
+          console.log('🏛️ Facettes numerodepartement trouvées:', facet.facets.length);
           facet.facets.forEach((deptFacet: any) => {
             const deptCode = deptFacet.name || deptFacet.value;
             const count = deptFacet.count || 0;
             if (deptCode) {
               departmentData[deptCode] = count;
-              console.log(`📍 Département ${deptCode}: ${count} annonces`);
+              console.log(`📍 Département ${deptCode}: ${count} annonces (facets)`);
             }
           });
         }
@@ -416,16 +436,17 @@ export class BodaccApiService {
     
     // Structure 3: data.aggregations
     if (!facetsFound && data.aggregations && data.aggregations.numerodepartement) {
-      console.log('🏛️ Structure aggregations trouvée:', data.aggregations.numerodepartement);
+      console.log('🏛️ Structure aggregations trouvée');
       const deptAgg = data.aggregations.numerodepartement;
       if (deptAgg.buckets && Array.isArray(deptAgg.buckets)) {
         facetsFound = true;
+        console.log('🏛️ Buckets aggregations:', deptAgg.buckets.length);
         deptAgg.buckets.forEach((bucket: any) => {
           const deptCode = bucket.key;
           const count = bucket.doc_count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces`);
+            console.log(`📍 Département ${deptCode}: ${count} annonces (aggregations)`);
           }
         });
       }
@@ -433,8 +454,16 @@ export class BodaccApiService {
     
     // Si aucune facette trouvée, essayer une approche différente
     if (!facetsFound) {
-      console.log('❌ Aucune facette trouvée dans la structure:', Object.keys(data));
-      console.log('📊 Structure complète des données:', JSON.stringify(data, null, 2));
+      console.log('❌ DIAGNOSTIC: Aucune facette trouvée');
+      console.log('❌ Clés disponibles:', Object.keys(data));
+      console.log('❌ Type de chaque clé:', Object.keys(data).map(key => `${key}: ${typeof data[key]}`));
+      
+      // Vérifier si on a des résultats du tout
+      if (data.total_count === 0) {
+        console.log('❌ PROBLÈME: total_count = 0, aucune donnée pour cette période');
+        console.log('❌ Période testée:', dateFrom, 'au', dateTo);
+        console.log('❌ Suggestion: Vérifier si les dates sont correctes ou élargir la période');
+      }
       
       // Essayer de faire une requête avec une approche différente
       return await this.getDepartmentCreationsAlternative(dateFrom, dateTo, signal);
@@ -450,14 +479,14 @@ export class BodaccApiService {
   private static async getDepartmentCreationsAlternative(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
     console.log('🔄 Tentative méthode alternative...');
     
-    // Utiliser l'endpoint d'agrégation avec select et group_by
+    // Méthode 1: Endpoint d'agrégation
     const params = new URLSearchParams();
     params.set('select', 'count(*) as count');
     params.set('group_by', 'numerodepartement');
     params.set('where', `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
     
     const url = `${BODACC_DATASET_BASE}/aggregates?${params.toString()}`;
-    console.log('🌐 URL alternative:', url);
+    console.log('🌐 URL alternative (aggregates):', url);
     
     try {
       const response = await fetch(url, {
@@ -468,42 +497,125 @@ export class BodaccApiService {
       });
       
       if (!response.ok) {
-        console.log('❌ Méthode alternative échouée, utilisation de données simulées');
-        return this.getSimulatedDepartmentData();
+        console.log('❌ Méthode aggregates échouée:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.log('❌ Détail erreur aggregates:', errorText);
+        
+        // Essayer une 3ème méthode: requête simple avec limit plus élevé
+        return await this.getDepartmentCreationsSimpleQuery(dateFrom, dateTo, signal);
       }
       
       const data = await response.json();
-      console.log('📊 Données alternatives reçues:', data);
+      console.log('📊 Données aggregates reçues:', JSON.stringify(data, null, 2));
       
       const departmentData: Record<string, number> = {};
       
       // Structure attendue avec select et group_by
       if (data.results && Array.isArray(data.results)) {
+        console.log('🏛️ Structure results trouvée:', data.results.length, 'résultats');
         data.results.forEach((result: any) => {
-          const deptCode = agg.numerodepartement;
+          const deptCode = result.numerodepartement;
           const count = result.count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces (alternative)`);
+            console.log(`📍 Département ${deptCode}: ${count} annonces (aggregates)`);
           }
         });
       }
       // Structure alternative possible
       else if (data.aggregations && Array.isArray(data.aggregations)) {
+        console.log('🏛️ Structure aggregations array trouvée:', data.aggregations.length);
         data.aggregations.forEach((agg: any) => {
           const deptCode = agg.numerodepartement;
           const count = agg.count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces (aggregations)`);
+            console.log(`📍 Département ${deptCode}: ${count} annonces (agg array)`);
           }
         });
+      }
+      
+      if (Object.keys(departmentData).length === 0) {
+        console.log('❌ Aucune donnée extraite de la méthode aggregates');
+        return await this.getDepartmentCreationsSimpleQuery(dateFrom, dateTo, signal);
       }
       
       return departmentData;
       
     } catch (error) {
-      console.log('❌ Erreur méthode alternative:', error);
+      console.log('❌ Erreur méthode aggregates:', error);
+      return await this.getDepartmentCreationsSimpleQuery(dateFrom, dateTo, signal);
+    }
+  }
+  
+  /**
+   * 3ème méthode: Requête simple avec parsing manuel
+   */
+  private static async getDepartmentCreationsSimpleQuery(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
+    console.log('🔄 Tentative méthode simple query...');
+    
+    try {
+      // Récupérer un échantillon de données pour voir la structure
+      const params = new URLSearchParams();
+      params.set('limit', '100'); // Échantillon
+      params.set('where', `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
+      
+      const url = `${BODACC_API_BASE}?${params.toString()}`;
+      console.log('🌐 URL simple query:', url);
+      
+      const response = await fetch(url, {
+        signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.log('❌ Méthode simple query échouée, utilisation de données simulées');
+        return this.getSimulatedDepartmentData();
+      }
+      
+      const data = await response.json();
+      console.log('📊 Données simple query reçues:', {
+        total_count: data.total_count,
+        records_count: data.records?.length || 0,
+        first_record_fields: data.records?.[0]?.record?.fields ? Object.keys(data.records[0].record.fields) : 'N/A'
+      });
+      
+      // Compter manuellement par département
+      const departmentData: Record<string, number> = {};
+      
+      if (data.records && Array.isArray(data.records)) {
+        data.records.forEach((record: any) => {
+          const fields = record.record?.fields || {};
+          const deptCode = fields.numerodepartement;
+          if (deptCode) {
+            departmentData[deptCode] = (departmentData[deptCode] || 0) + 1;
+          }
+        });
+        
+        console.log('📊 Départements trouvés dans l\'échantillon:', Object.keys(departmentData).length);
+        Object.entries(departmentData).forEach(([dept, count]) => {
+          console.log(`📍 Département ${dept}: ${count} annonces (échantillon)`);
+        });
+        
+        // Extrapoler si on a un échantillon
+        if (data.total_count > 100) {
+          const ratio = data.total_count / data.records.length;
+          console.log(`📊 Extrapolation avec ratio ${ratio.toFixed(2)}`);
+          Object.keys(departmentData).forEach(dept => {
+            departmentData[dept] = Math.round(departmentData[dept] * ratio);
+          });
+        }
+        
+        return departmentData;
+      }
+      
+      console.log('❌ Aucune structure de données reconnue dans simple query');
+      return this.getSimulatedDepartmentData();
+      
+    } catch (error) {
+      console.log('❌ Erreur méthode simple query:', error);
       return this.getSimulatedDepartmentData();
     }
   }
