@@ -385,13 +385,9 @@ export class BodaccApiService {
       console.log('❌ Endpoint facets dédié échoué:', error);
     }
     
-    // Méthode 2: Essayer l'endpoint aggregates
-    try {
-      const whereClause = `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`;
-      const params = new URLSearchParams();
-    }
-   * Données simulées réalistes en cas d'échec de l\'API
-   */
+    // Fallback: Données simulées
+    console.log('🎭 Toutes les méthodes ont échoué, utilisation de données simulées');
+    return this.getSimulatedDepartmentData();
   }
   private static getSimulatedDepartmentData(): Record<string, number> {
     console.log('🎭 Utilisation de données simulées réalistes');
