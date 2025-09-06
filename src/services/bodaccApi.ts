@@ -14,8 +14,8 @@ const CREATION_FILTER_CLAUSE = `typeavis_lib IN ('Immatriculation','Avis de cons
 // Ajuste les seuils de météo
 const POSITIVE_THRESHOLD = 10;  // > +10% => sunny
 const NEGATIVE_THRESHOLD = -10; // < -10% => rainy
-// Logs détaillés
-const DEBUG = true;
+// Logs détaillés - désactivés en production
+const DEBUG = false;
 
 export class BodaccApiService {
   // --- Utils ---

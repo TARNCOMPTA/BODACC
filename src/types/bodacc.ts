@@ -70,6 +70,15 @@ export interface StatisticsData {
   averagePerPeriod: number;
 }
 
+export interface DepartmentData {
+  code: string;
+  name: string;
+  creations: number;
+  previousCreations: number;
+  evolution: number;
+  weather: 'sunny' | 'cloudy' | 'rainy';
+}
+
 export interface ApiResponse {
   total_count: number;
   results: BodaccAnnouncement[];
