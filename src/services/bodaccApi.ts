@@ -149,9 +149,9 @@ export class BodaccApiService {
     // Construire les paramètres de requête
     const params = new URLSearchParams();
     params.set('limit', '0'); // On ne veut que les facettes
-    params.set('facet', 'typeavis_lib');
-    params.set('facet', 'familleavis_lib');
-    params.set('facet', 'departement_nom_officiel');
+    params.append('facet', 'typeavis_lib');
+    params.append('facet', 'familleavis_lib');
+    params.append('facet', 'departement_nom_officiel');
     
     // Conditions WHERE
     const whereConditions: string[] = [];
@@ -338,7 +338,7 @@ export class BodaccApiService {
     
     const params = new URLSearchParams();
     params.set('limit', '0'); // On ne veut que les facettes
-    params.set('facet', 'numerodepartement');
+    params.append('facet', 'numerodepartement');
     
     // Essayer différents filtres pour les créations
     const whereConditions = [
@@ -822,7 +822,7 @@ export class BodaccApiService {
     try {
       const params = new URLSearchParams();
       params.set('limit', '0'); // On ne veut que les facettes, pas les données
-      params.set('facet', 'typeavis_lib');
+      params.append('facet', 'typeavis_lib');
       
       const url = `${BODACC_API_BASE}?${params.toString()}`;
       
