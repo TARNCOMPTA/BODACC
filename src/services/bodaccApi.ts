@@ -210,12 +210,16 @@ export class BodaccApiService {
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
     try {
-      // Mois de référence = mois précédent complet ; comparaison = mois N-2 complet
+      // Mois de référence = décembre 2024 ; comparaison = novembre 2024
       const now = new Date();
-      const refStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const refEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-      const cmpStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-      const cmpEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0);
+      
+      // Référence : décembre 2024 (dernier mois complet avec des données)
+      const refStart = new Date(2024, 11, 1); // 1er décembre 2024
+      const refEnd = new Date(2024, 11, 31);  // 31 décembre 2024
+      
+      // Comparaison : novembre 2024
+      const cmpStart = new Date(2024, 10, 1);  // 1er novembre 2024
+      const cmpEnd = new Date(2024, 10, 30);   // 30 novembre 2024
 
       const refFrom = this.fmt(refStart), refTo = this.fmt(refEnd);
       const cmpFrom = this.fmt(cmpStart), cmpTo = this.fmt(cmpEnd);
