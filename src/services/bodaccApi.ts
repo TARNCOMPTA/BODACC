@@ -283,13 +283,13 @@ export class BodaccApiService {
     params.set('group_by', 'numerodepartement');
     params.set('where', where);
 
-    const url = `${ODS_EXPLORE_BASE}/aggregates?${params.toString()}`;
-    if (DEBUG) console.log('🌐 URL aggregates (v2.1):', url);
+    const url = `${ODS_RECORDS_BASE}?${params.toString()}`;
+    if (DEBUG) console.log('🌐 URL records avec GROUP_BY:', url);
 
     const res = await fetch(url, { signal, headers: { Accept: 'application/json' }});
     if (!res.ok) {
       const t = await res.text();
-      throw new Error(`Erreur API BODACC aggregates: ${res.status} ${res.statusText} - ${t}`);
+      throw new Error(`Erreur API BODACC records: ${res.status} ${res.statusText} - ${t}`);
     }
     const data = await res.json();
 
