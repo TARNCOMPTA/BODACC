@@ -263,23 +263,30 @@ export class BodaccApiService {
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
     try {
-      // Calculer les dates pour ce mois et le mois précédent
+      // Calculer les dates pour le mois précédent complet et l'avant-dernier mois complet
       const now = new Date();
-      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
       
-      const currentMonthStr = currentMonth.toISOString().split('T')[0];
-      const currentMonthEndStr = currentMonthEnd.toISOString().split('T')[0];
-      const previousMonthStr = previousMonth.toISOString().split('T')[0];
-      const previousMonthEndStr = previousMonthEnd.toISOString().split('T')[0];
+      // Mois de référence : le mois précédent complet (ex: août 2025 si on est en septembre)
+      const referenceMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const referenceMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
       
-      // Récupérer les données du mois actuel
-      const currentMonthData = await this.getDepartmentCreations(currentMonthStr, currentMonthEndStr, controller.signal);
+      // Mois de comparaison : l'avant-dernier mois complet (ex: juillet 2025)
+      const comparisonMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      const comparisonMonthEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0);
       
-      // Récupérer les données du mois précédent
-      const previousMonthData = await this.getDepartmentCreations(previousMonthStr, previousMonthEndStr, controller.signal);
+      const referenceMonthStr = referenceMonth.toISOString().split('T')[0];
+      const referenceMonthEndStr = referenceMonthEnd.toISOString().split('T')[0];
+      const comparisonMonthStr = comparisonMonth.toISOString().split('T')[0];
+      const comparisonMonthEndStr = comparisonMonthEnd.toISOString().split('T')[0];
+      
+      console.log(`📅 Mois de référence: ${referenceMonthStr} au ${referenceMonthEndStr}`);
+      console.log(`📅 Mois de comparaison: ${comparisonMonthStr} au ${comparisonMonthEndStr}`);
+      
+      // Récupérer les données du mois de référence
+      const referenceMonthData = await this.getDepartmentCreations(referenceMonthStr, referenceMonthEndStr, controller.signal);
+      
+      // Récupérer les données du mois de comparaison
+      const comparisonMonthData = await this.getDepartmentCreations(comparisonMonthStr, comparisonMonthEndStr, controller.signal);
       
       clearTimeout(timeoutId);
       
@@ -287,8 +294,8 @@ export class BodaccApiService {
       const departmentsList = this.getDepartmentsList();
       
       return departmentsList.map(dept => {
-        const currentCreations = currentMonthData[dept.code] || 0;
-        const previousCreations = previousMonthData[dept.code] || 0;
+        const currentCreations = referenceMonthData[dept.code] || 0;
+        const previousCreations = comparisonMonthData[dept.code] || 0;
         
         let evolution = 0;
         if (previousCreations > 0) {
