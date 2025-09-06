@@ -1,8 +1,9 @@
 import React from 'react';
-import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock, CloudSun } from 'lucide-react';
+import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
+import { FranceMapWeather } from './FranceMapWeather';
 
 interface HomeTabProps {
-  onTabChange: (tab: 'home' | 'search' | 'statistics' | 'weather') => void;
+  onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
 }
 
 export function HomeTab({ onTabChange }: HomeTabProps) {
@@ -41,6 +42,11 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
 
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Météo économique */}
+        <div className="mb-16">
+          <FranceMapWeather />
+        </div>
+        
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" id="fonctionnalites">
             Fonctionnalités principales
@@ -50,7 +56,7 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Recherche d'annonces */}
           <article className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center mb-6">
@@ -115,40 +121,6 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
               <div className="flex items-center text-sm text-gray-600">
                 <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
                 Export des statistiques
-              </div>
-            </div>
-          </article>
-
-          {/* Météo économique */}
-          <article className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center mb-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl">
-                <CloudSun className="w-6 h-6 text-orange-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 ml-4" id="meteo-economique">Météo économique</h3>
-            </div>
-            
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Visualisez l'évolution des créations d'entreprises par département avec notre 
-              système de météo économique innovant.
-            </p>
-            
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                Carte interactive de France
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                Évolution par département
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                Données temps réel BODACC
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                Indicateurs visuels météo
               </div>
             </div>
           </article>
@@ -261,11 +233,11 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             Prêt à explorer les données BODACC ?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Commencez dès maintenant votre recherche, découvrez les tendances 
-            avec nos outils d'analyse ou consultez la météo économique.
+            Commencez dès maintenant votre recherche ou découvrez les tendances 
+            avec nos outils d'analyse statistique.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={() => onTabChange('search')}
               className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
@@ -282,15 +254,6 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               Voir les statistiques
-            </button>
-            
-            <button 
-              onClick={() => onTabChange('weather')}
-              className="inline-flex items-center px-8 py-4 border border-orange-300 text-lg font-medium rounded-xl text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors shadow-lg"
-              aria-label="Accéder à la météo économique BODACC"
-            >
-              <CloudSun className="w-5 h-5 mr-2" />
-              Météo économique
             </button>
           </div>
         </div>

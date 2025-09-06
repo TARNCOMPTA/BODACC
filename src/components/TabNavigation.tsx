@@ -1,9 +1,9 @@
 import React from 'react';
-import { Search, BarChart3, Home, CloudSun } from 'lucide-react';
+import { Search, BarChart3, Home } from 'lucide-react';
 
 interface TabNavigationProps {
-  activeTab: 'home' | 'search' | 'statistics' | 'weather';
-  onTabChange: (tab: 'home' | 'search' | 'statistics' | 'weather') => void;
+  activeTab: 'home' | 'search' | 'statistics';
+  onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
@@ -22,11 +22,6 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       id: 'statistics' as const,
       name: 'Statistiques',
       icon: BarChart3,
-    },
-    {
-      id: 'weather' as const,
-      name: 'Météo économique',
-      icon: CloudSun,
     },
   ];
 
