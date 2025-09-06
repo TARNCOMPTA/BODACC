@@ -443,8 +443,9 @@ export class BodaccApiService {
   private static async getDepartmentCreationsAlternative(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
     console.log('🔄 Tentative méthode alternative...');
     
-    // Essayer avec l'endpoint d'agrégation directe
+    // Utiliser l'endpoint d'agrégation avec select et group_by
     const params = new URLSearchParams();
+    params.set('select', 'count(*) as count');
     params.set('group_by', 'numerodepartement');
     params.set('where', `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
     
@@ -469,13 +470,25 @@ export class BodaccApiService {
       
       const departmentData: Record<string, number> = {};
       
-      if (data.aggregations && Array.isArray(data.aggregations)) {
+      // Structure attendue avec select et group_by
+      if (data.results && Array.isArray(data.results)) {
+        data.results.forEach((result: any) => {
+          const deptCode = agg.numerodepartement;
+          const count = result.count || 0;
+          if (deptCode) {
+            departmentData[deptCode] = count;
+            console.log(`📍 Département ${deptCode}: ${count} annonces (alternative)`);
+          }
+        });
+      }
+      // Structure alternative possible
+      else if (data.aggregations && Array.isArray(data.aggregations)) {
         data.aggregations.forEach((agg: any) => {
           const deptCode = agg.numerodepartement;
           const count = agg.count || 0;
           if (deptCode) {
             departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces (alternative)`);
+            console.log(`📍 Département ${deptCode}: ${count} annonces (aggregations)`);
           }
         });
       }
