@@ -343,23 +343,56 @@ export class BodaccApiService {
   private static async getDepartmentCreations(dateFrom: string, dateTo: string, signal: AbortSignal): Promise<Record<string, number>> {
     console.log('🔍 Recherche créations du', dateFrom, 'au', dateTo);
     
-    // Log détaillé des paramètres
+    // Essayer d'abord l'endpoint facets dédié
+    try {
+      const facetsUrl = `${BODACC_DATASET_BASE}/facets/numerodepartement?where=${encodeURIComponent(`dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`)}`;
+      console.log('🌐 URL facets dédiée:', facetsUrl);
+      
+      const facetsResponse = await fetch(facetsUrl, {
+        signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (facetsResponse.ok) {
+        const facetsData = await facetsResponse.json();
+        console.log('📊 Données facets dédiées:', JSON.stringify(facetsData, null, 2));
+        
+        const departmentData: Record<string, number> = {};
+        
+        // Structure possible: data.facets
+        if (facetsData.facets && Array.isArray(facetsData.facets)) {
+          facetsData.facets.forEach((facet: any) => {
+            const deptCode = facet.name || facet.value;
+            const count = facet.count || 0;
+            if (deptCode) {
+              departmentData[deptCode] = count;
+              console.log(`📍 Département ${deptCode}: ${count} annonces (facets dédiées)`);
+            }
+          });
+          
+          if (Object.keys(departmentData).length > 0) {
+            console.log('✅ Facettes dédiées réussies:', Object.keys(departmentData).length, 'départements');
+            return departmentData;
+          }
+        }
+      }
+    } catch (error) {
+      console.log('❌ Endpoint facets dédié échoué:', error);
+    }
+    
+    // Méthode alternative: utiliser l'endpoint aggregates
     const params = new URLSearchParams();
-    params.set('limit', '0'); // On ne veut que les facettes
-    params.append('facet', 'numerodepartement');
+    params.set('select', 'numerodepartement, count(*) as count');
+    params.set('group_by', 'numerodepartement');
+    params.set('where', `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`);
     
-    const whereConditions = [
-      `dateparution >= date'${dateFrom}'`,
-      `dateparution <= date'${dateTo}'`
-    ];
-    
-    params.set('where', whereConditions.join(' AND '));
-    
-    const url = `${BODACC_API_BASE}?${params.toString()}`;
-    console.log('🌐 URL météo complète:', url);
+    const url = `${BODACC_DATASET_BASE}/aggregates?${params.toString()}`;
+    console.log('🌐 URL aggregates:', url);
     console.log('📋 Paramètres détaillés:', {
-      limit: params.get('limit'),
-      facet: params.getAll('facet'),
+      select: params.get('select'),
+      group_by: params.get('group_by'),
       where: params.get('where')
     });
     
@@ -378,95 +411,26 @@ export class BodaccApiService {
     }
     
     const data = await response.json();
-    console.log('📊 Données météo reçues (structure complète):', JSON.stringify(data, null, 2));
+    console.log('📊 Données aggregates reçues:', JSON.stringify(data, null, 2));
     console.log('📊 Clés principales:', Object.keys(data));
-    console.log('📊 Total count:', data.total_count);
     
     // Extraire les données par département
     const departmentData: Record<string, number> = {};
-    
-    // Vérifier plusieurs structures possibles pour les facettes
-    let facetsFound = false;
-    
-    // Structure 1: data.facet_groups
-    if (data.facet_groups && Array.isArray(data.facet_groups)) {
-      console.log('🏛️ Structure facet_groups trouvée, nombre de groupes:', data.facet_groups.length);
-      console.log('🏛️ Noms des groupes:', data.facet_groups.map((g: any) => g.name));
-      
-      const deptFacetGroup = data.facet_groups.find((group: any) => group.name === 'numerodepartement');
-      console.log('🏛️ Groupe numerodepartement trouvé:', !!deptFacetGroup);
-      
-      if (deptFacetGroup && deptFacetGroup.facets && Array.isArray(deptFacetGroup.facets)) {
-        facetsFound = true;
-        console.log('🏛️ Nombre de facettes département:', deptFacetGroup.facets.length);
-        deptFacetGroup.facets.forEach((facet: any) => {
-          const deptCode = facet.name || facet.value;
-          const count = facet.count || 0;
-          if (deptCode) {
-            departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces (structure: ${JSON.stringify(facet)})`);
-          }
-        });
-      } else {
-        console.log('🏛️ Structure facet_groups présente mais pas de facettes numerodepartement valides');
-        if (deptFacetGroup) {
-          console.log('🏛️ Structure du groupe département:', JSON.stringify(deptFacetGroup, null, 2));
-        }
-      }
-    }
-    
-    // Structure 2: data.facets
-    if (!facetsFound && data.facets && Array.isArray(data.facets)) {
-      console.log('🏛️ Structure facets trouvée, nombre:', data.facets.length);
-      data.facets.forEach((facet: any) => {
-        if (facet.name === 'numerodepartement' && facet.facets && Array.isArray(facet.facets)) {
-          facetsFound = true;
-          console.log('🏛️ Facettes numerodepartement trouvées:', facet.facets.length);
-          facet.facets.forEach((deptFacet: any) => {
-            const deptCode = deptFacet.name || deptFacet.value;
-            const count = deptFacet.count || 0;
-            if (deptCode) {
-              departmentData[deptCode] = count;
-              console.log(`📍 Département ${deptCode}: ${count} annonces (facets)`);
-            }
-          });
+
+    // Structure attendue pour aggregates: data.results
+    if (data.results && Array.isArray(data.results)) {
+      console.log('🏛️ Structure results trouvée:', data.results.length, 'résultats');
+      data.results.forEach((result: any) => {
+        const deptCode = result.numerodepartement;
+        const count = result.count || 0;
+        if (deptCode) {
+          departmentData[deptCode] = count;
+          console.log(`📍 Département ${deptCode}: ${count} annonces (aggregates)`);
         }
       });
-    }
-    
-    // Structure 3: data.aggregations
-    if (!facetsFound && data.aggregations && data.aggregations.numerodepartement) {
-      console.log('🏛️ Structure aggregations trouvée');
-      const deptAgg = data.aggregations.numerodepartement;
-      if (deptAgg.buckets && Array.isArray(deptAgg.buckets)) {
-        facetsFound = true;
-        console.log('🏛️ Buckets aggregations:', deptAgg.buckets.length);
-        deptAgg.buckets.forEach((bucket: any) => {
-          const deptCode = bucket.key;
-          const count = bucket.doc_count || 0;
-          if (deptCode) {
-            departmentData[deptCode] = count;
-            console.log(`📍 Département ${deptCode}: ${count} annonces (aggregations)`);
-          }
-        });
-      }
-    }
-    
-    // Si aucune facette trouvée, essayer une approche différente
-    if (!facetsFound) {
-      console.log('❌ DIAGNOSTIC: Aucune facette trouvée');
-      console.log('❌ Clés disponibles:', Object.keys(data));
-      console.log('❌ Type de chaque clé:', Object.keys(data).map(key => `${key}: ${typeof data[key]}`));
-      
-      // Vérifier si on a des résultats du tout
-      if (data.total_count === 0) {
-        console.log('❌ PROBLÈME: total_count = 0, aucune donnée pour cette période');
-        console.log('❌ Période testée:', dateFrom, 'au', dateTo);
-        console.log('❌ Suggestion: Vérifier si les dates sont correctes ou élargir la période');
-      }
-      
-      // Essayer de faire une requête avec une approche différente
-      return await this.getDepartmentCreationsAlternative(dateFrom, dateTo, signal);
+    } else {
+      console.log('❌ Structure results non trouvée, essai méthode échantillonnage');
+      return await this.getDepartmentCreationsSimpleQuery(dateFrom, dateTo, signal);
     }
     
     console.log('📈 Résultat final départements:', departmentData);
