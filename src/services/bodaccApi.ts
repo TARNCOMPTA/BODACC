@@ -1,5 +1,5 @@
 import { BodaccAnnouncement, SearchFilters, ApiResponse } from '../types/bodacc';
-import { StatisticsFilters, StatisticsData, StatisticsPeriod } from '../types/bodacc';
+import { StatisticsFilters, StatisticsData, StatisticsPeriod, DepartmentData } from '../types/bodacc';
 
 const BODACC_API_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales/records';
 const BODACC_DATASET_BASE = 'https://bodacc-datadila.opendatasoft.com/api/v2/catalog/datasets/annonces-commerciales';
