@@ -389,8 +389,10 @@ export class BodaccApiService {
     try {
       const whereClause = `dateparution >= date'${dateFrom}' AND dateparution <= date'${dateTo}'`;
       const params = new URLSearchParams();
-   * Données simulées réalistes en cas d'échec de l'API
+    }
+   * Données simulées réalistes en cas d'échec de l\'API
    */
+  }
   private static getSimulatedDepartmentData(): Record<string, number> {
     console.log('🎭 Utilisation de données simulées réalistes');
     
