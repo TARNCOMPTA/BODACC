@@ -453,7 +453,7 @@ export function WeatherTab() {
                 <div className="flex items-center space-x-2">
                   <CloudRain className="w-5 h-5 text-blue-500" />
                   <span>
-                    <strong>Pluvieux</strong> : Évolution < -10% des créations
+                    <strong>Pluvieux</strong> : Évolution &lt; -10% des créations
                   </span>
                 </div>
               </div>
