@@ -441,7 +441,7 @@ export function WeatherTab() {
                 <div className="flex items-center space-x-2">
                   <Sun className="w-5 h-5 text-yellow-500" />
                   <span>
-                    <strong>Ensoleillé</strong> : Évolution > +10% des créations
+                    <strong>Ensoleillé</strong> : Évolution &gt; +10% des créations
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
