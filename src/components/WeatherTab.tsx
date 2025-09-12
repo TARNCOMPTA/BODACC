@@ -165,8 +165,8 @@ export function WeatherTab() {
       const currentCreationsResponse = await BodaccApiService.getAnnouncements({
         query: '',
         departement: selectedDepartment,
-        category: 'Immatriculation',
-        subCategory: '',
+        category: '',
+        subCategory: 'Créations',
         dateFrom: currentStart,
         dateTo: currentEnd,
         page: 1,
@@ -177,8 +177,8 @@ export function WeatherTab() {
       const currentRadiationsResponse = await BodaccApiService.getAnnouncements({
         query: '',
         departement: selectedDepartment,
-        category: 'Clôture de liquidation',
-        subCategory: '',
+        category: '',
+        subCategory: 'Radiations',
         dateFrom: currentStart,
         dateTo: currentEnd,
         page: 1,
@@ -189,8 +189,8 @@ export function WeatherTab() {
       const previousCreationsResponse = await BodaccApiService.getAnnouncements({
         query: '',
         departement: selectedDepartment,
-        category: 'Immatriculation',
-        subCategory: '',
+        category: '',
+        subCategory: 'Créations',
         dateFrom: previousStart,
         dateTo: previousEnd,
         page: 1,
