@@ -4,9 +4,10 @@ import { TabNavigation } from './components/TabNavigation';
 import { HomeTab } from './components/HomeTab';
 import { SearchTab } from './components/SearchTab';
 import { StatisticsTab } from './components/StatisticsTab';
+import { WeatherTab } from './components/WeatherTab';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'statistics'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'statistics' | 'weather'>('home');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -17,6 +18,7 @@ function App() {
         {activeTab === 'home' && <HomeTab onTabChange={setActiveTab} />}
         {activeTab === 'search' && <SearchTab />}
         {activeTab === 'statistics' && <StatisticsTab />}
+        {activeTab === 'weather' && <WeatherTab />}
       </main>
       
       <footer className="bg-white border-t border-gray-200 mt-16">

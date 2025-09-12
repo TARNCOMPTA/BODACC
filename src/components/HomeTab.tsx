@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
 
 interface HomeTabProps {
-  onTabChange: (tab: 'home' | 'search' | 'statistics') => void;
+  onTabChange: (tab: 'home' | 'search' | 'statistics' | 'weather') => void;
 }
 
 export function HomeTab({ onTabChange }: HomeTabProps) {
