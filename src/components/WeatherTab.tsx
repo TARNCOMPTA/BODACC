@@ -148,13 +148,18 @@ export function WeatherTab() {
     setError(null);
     
     try {
-      // Période actuelle (décembre 2024)
-      const currentStart = '2024-12-01';
-      const currentEnd = '2024-12-31';
+      // Calculer le mois précédent à aujourd'hui
+      const today = new Date();
+      const currentMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const previousMonth = new Date(today.getFullYear(), today.getMonth() - 2, 1);
       
-      // Période précédente (novembre 2024)
-      const previousStart = '2024-11-01';
-      const previousEnd = '2024-11-30';
+      // Période actuelle (mois précédent)
+      const currentStart = currentMonth.toISOString().split('T')[0].substring(0, 8) + '01';
+      const currentEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+      
+      // Période précédente (2 mois avant)
+      const previousStart = previousMonth.toISOString().split('T')[0].substring(0, 8) + '01';
+      const previousEnd = new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString().split('T')[0];
       
       // Rechercher les créations pour la période actuelle
       const currentCreationsResponse = await BodaccApiService.getAnnouncements({
@@ -311,7 +316,9 @@ export function WeatherTab() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 Météo économique - {weatherData.departmentName}
               </h3>
-              <p className="text-gray-600">Données pour décembre 2024</p>
+              <p className="text-gray-600">
+                Données pour {new Date(new Date().getFullYear(), new Date().getMonth() - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
