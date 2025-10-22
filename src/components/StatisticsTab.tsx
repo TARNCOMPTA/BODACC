@@ -5,7 +5,7 @@ import { ErrorMessage } from './ErrorMessage';
 import { useBodaccStatistics } from '../hooks/useBodaccStatistics';
 import { StatisticsFilters } from '../types/bodacc';
 
-export function StatisticsTab() {
+function StatisticsTab() {
   const today = new Date();
   const startYear = today.getFullYear() - 3;
   const threeYearsAgoString = `${startYear}-01-01`; // Format direct pour éviter les problèmes de fuseau horaire
@@ -77,3 +77,5 @@ export function StatisticsTab() {
     </div>
   );
 }
+
+export default StatisticsTab;

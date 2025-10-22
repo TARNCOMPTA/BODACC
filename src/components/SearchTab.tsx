@@ -6,7 +6,7 @@ import { ProgressBar } from './ProgressBar';
 import { useBodaccData } from '../hooks/useBodaccSearchOptimized';
 import { SearchFilters } from '../types/bodacc';
 
-export function SearchTab() {
+function SearchTab() {
   const today = new Date();
   const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
   const todayString = today.toISOString().split('T')[0];
@@ -119,3 +119,5 @@ export function SearchTab() {
     </div>
   );
 }
+
+export default SearchTab;

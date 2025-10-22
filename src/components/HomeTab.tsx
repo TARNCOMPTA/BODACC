@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
 
-export function HomeTab() {
+function HomeTab() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors" role="main">
       {/* Hero Section */}
@@ -252,3 +252,5 @@ export function HomeTab() {
     </main>
   );
 }
+
+export default HomeTab;

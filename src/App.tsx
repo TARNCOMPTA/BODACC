@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import { Header } from './components/Header';
 import { TabNavigation } from './components/TabNavigation';
-import { HomeTab } from './components/HomeTab';
-import { SearchTab } from './components/SearchTab';
-import { StatisticsTab } from './components/StatisticsTab';
-import { WeatherTab } from './components/WeatherTab';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { ToastContainer } from './components/ToastContainer';
+
+const HomeTab = lazy(() => import('./components/HomeTab'));
+const SearchTab = lazy(() => import('./components/SearchTab'));
+const StatisticsTab = lazy(() => import('./components/StatisticsTab'));
+const WeatherTab = lazy(() => import('./components/WeatherTab'));
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'BODACC Explorer - Accueil',
@@ -22,6 +24,14 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   '/statistiques': 'Analysez les tendances et évolutions des annonces BODACC avec des graphiques interactifs',
   '/meteo': 'Consultez la météo économique d\'un département basée sur les créations et radiations d\'entreprises',
 };
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
+}
 
 function App() {
   const location = useLocation();
@@ -57,13 +67,15 @@ function App() {
       <TabNavigation />
 
       <main>
-        <Routes>
-          <Route path="/" element={<HomeTab />} />
-          <Route path="/recherche" element={<SearchTab />} />
-          <Route path="/statistiques" element={<StatisticsTab />} />
-          <Route path="/meteo" element={<WeatherTab />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<HomeTab />} />
+            <Route path="/recherche" element={<SearchTab />} />
+            <Route path="/statistiques" element={<StatisticsTab />} />
+            <Route path="/meteo" element={<WeatherTab />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <ToastContainer />
