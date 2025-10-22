@@ -82,10 +82,10 @@ export function SearchResults({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors">
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Chargement des annonces...</span>
+          <span className="ml-3 text-gray-600 dark:text-gray-300">Chargement des annonces...</span>
         </div>
       </div>
     );
@@ -93,9 +93,9 @@ export function SearchResults({
 
   if (announcements.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center transition-colors">
         <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-lg text-gray-600">Aucune annonce trouvée</p>
+        <p className="text-lg text-gray-600 dark:text-gray-300">Aucune annonce trouvée</p>
       </div>
     );
   }
@@ -106,13 +106,13 @@ export function SearchResults({
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <FileText className="w-5 h-5 text-gray-400" />
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-300">
               {startIndex}-{endIndex} sur {totalCount.toLocaleString('fr-FR')} résultats
             </span>
           </div>
           
           <div className="flex items-center space-x-2">
-            <label htmlFor="sort" className="text-sm text-gray-600">Trier par:</label>
+            <label htmlFor="sort" className="text-sm text-gray-600 dark:text-gray-300">Trier par:</label>
             <select
               id="sort"
               value={filters.sort || '-dateparution'}
@@ -121,7 +121,7 @@ export function SearchResults({
                 sort: e.target.value,
                 page: 1 
               })}
-              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+              className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="-dateparution">Date (plus récent)</option>
               <option value="dateparution">Date (plus ancien)</option>
@@ -139,7 +139,7 @@ export function SearchResults({
           </div>
           
           <div className="flex items-center space-x-2">
-            <label htmlFor="limit" className="text-sm text-gray-600">Afficher:</label>
+            <label htmlFor="limit" className="text-sm text-gray-600 dark:text-gray-300">Afficher:</label>
             <select
               id="limit"
               value={filters.limit || 20}
@@ -148,19 +148,19 @@ export function SearchResults({
                 limit: parseInt(e.target.value),
                 page: 1 
               })}
-              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+              className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-            <span className="text-sm text-gray-600">par page</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">par page</span>
           </div>
         </div>
         
         <button
           onClick={handleExport}
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-colors"
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500 transition-colors"
         >
           <Download className="w-4 h-4 mr-2" />
           Exporter CSV
@@ -177,19 +177,19 @@ export function SearchResults({
       </div>
 
       {totalPages > 1 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transition-colors">
           <div className="flex items-center justify-between">
             <button
               onClick={() => onFiltersChange({ ...filters, page: page - 1 })}
               disabled={page <= 1}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Précédent
             </button>
             
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 Page {page} sur {totalPages}
               </span>
             </div>
@@ -197,7 +197,7 @@ export function SearchResults({
             <button
               onClick={() => onFiltersChange({ ...filters, page: page + 1 })}
               disabled={page >= totalPages}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Suivant
               <ChevronRight className="w-4 h-4 ml-1" />

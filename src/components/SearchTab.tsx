@@ -61,19 +61,19 @@ export function SearchTab() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Annonces BODACC
           </h2>
           <div className="flex items-center justify-between">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Consultez et filtrez les annonces officielles du Bulletin officiel des annonces civiles et commerciales
             </p>
             {cacheSize > 0 && (
               <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-500">Cache: {cacheSize} requêtes</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Cache: {cacheSize} requêtes</span>
                 <button
                   onClick={clearCache}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
                 >
                   Vider
                 </button>
@@ -83,10 +83,10 @@ export function SearchTab() {
         </div>
         
         {isLoading && progress > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transition-colors">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Chargement en cours...</span>
-              <span className="text-sm text-gray-500">{progress}%</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Chargement en cours...</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{progress}%</span>
             </div>
             <ProgressBar progress={progress} />
           </div>

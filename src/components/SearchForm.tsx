@@ -145,16 +145,16 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
     }
   }, [debouncedQuery, onApplyFilters]);
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex items-center space-x-2 mb-4">
           <Filter className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Filtres BODACC</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filtres BODACC</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-3">
-            <label htmlFor="query" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="query" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Recherche textuelle
             </label>
             <div className="relative">
@@ -165,10 +165,10 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
                 value={filters.query || ''}
                 onChange={(e) => onFiltersChange({ ...filters, query: e.target.value })}
                 placeholder="Nom d'entreprise, SIREN, activité... (min. 3 caractères)"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
               {filters.query && filters.query.length > 0 && filters.query.length < 3 && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Tapez au moins 3 caractères pour déclencher la recherche automatique
                 </p>
               )}
@@ -176,14 +176,14 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
           </div>
           
           <div>
-            <label htmlFor="departement" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="departement" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Département
             </label>
             <select
               id="departement"
               value={filters.departement || ''}
               onChange={(e) => onFiltersChange({ ...filters, departement: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               {DEPARTEMENTS_LIST.map((dept) => (
                 <option key={dept.code} value={dept.code}>
@@ -194,10 +194,10 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
           </div>
           
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Catégorie
               {categoriesLoading && (
-                <span className="ml-2 text-xs text-gray-500">(chargement...)</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(chargement...)</span>
               )}
             </label>
             <select
@@ -205,7 +205,7 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
               value={filters.category || ''}
               onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}
               disabled={categoriesLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             >
               {categories.map((cat) => (
                 <option key={cat.value} value={cat.value}>
@@ -216,10 +216,10 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
           </div>
           
           <div>
-            <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Sous-catégorie
               {isLoadingSubCategories && (
-                <span className="ml-2 text-xs text-gray-500">(chargement...)</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(chargement...)</span>
               )}
             </label>
             <select
@@ -227,7 +227,7 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
               value={filters.subCategory || ''}
               onChange={(e) => onFiltersChange({ ...filters, subCategory: e.target.value })}
               disabled={isLoadingSubCategories}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             >
               <option value="">Toutes les sous-catégories</option>
               {safeSubCategories.map((subCat) => (
@@ -239,7 +239,7 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
           </div>
           
           <div>
-            <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Date de début
             </label>
             <div className="relative">
@@ -249,13 +249,13 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
                 id="dateFrom"
                 value={filters.dateFrom || ''}
                 onChange={(e) => onFiltersChange({ ...filters, dateFrom: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
           </div>
           
           <div>
-            <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Date de fin
             </label>
             <div className="relative">
@@ -265,7 +265,7 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
                 id="dateTo"
                 value={filters.dateTo || ''}
                 onChange={(e) => onFiltersChange({ ...filters, dateTo: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
           </div>

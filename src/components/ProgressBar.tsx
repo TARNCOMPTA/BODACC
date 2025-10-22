@@ -21,10 +21,10 @@ export function ProgressBar({
   };
 
   const backgroundColorClasses = {
-    blue: 'bg-blue-100',
-    green: 'bg-green-100',
-    yellow: 'bg-yellow-100',
-    red: 'bg-red-100'
+    blue: 'bg-blue-100 dark:bg-blue-900/30',
+    green: 'bg-green-100 dark:bg-green-900/30',
+    yellow: 'bg-yellow-100 dark:bg-yellow-900/30',
+    red: 'bg-red-100 dark:bg-red-900/30'
   };
 
   const clampedProgress = Math.min(100, Math.max(0, progress));
@@ -39,7 +39,7 @@ export function ProgressBar({
       </div>
       {showPercentage && (
         <div className="mt-1 text-right">
-          <span className="text-xs text-gray-600">{Math.round(clampedProgress)}%</span>
+          <span className="text-xs text-gray-600 dark:text-gray-400">{Math.round(clampedProgress)}%</span>
         </div>
       )}
     </div>

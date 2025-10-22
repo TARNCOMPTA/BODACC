@@ -49,20 +49,20 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   const sirenNumber = getSiretNumber();
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200">
       <div className="flex flex-col space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               {announcement.denomination || 'Dénomination non spécifiée'}
               {registrationNumber && (
-                <span className="ml-2 text-sm font-normal text-gray-600">
+                <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
                   ({registrationNumber})
                 </span>
               )}
             </h3>
             {(announcement.adresse || announcement.ville || announcement.code_postal) && (
-              <div className="text-sm text-gray-600 mb-2">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 <MapPin className="w-4 h-4 inline mr-1" />
                 {announcement.adresse && <span>{announcement.adresse}</span>}
                 {(announcement.code_postal || announcement.ville) && (
@@ -76,7 +76,7 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
               <Building2 className="w-4 h-4 mr-1" />
               <span className="font-medium">{announcement.categorie}</span>
               {announcement.sous_categorie && (
-                <span className="text-gray-500 ml-2">• {announcement.sous_categorie}</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-2">• {announcement.sous_categorie}</span>
               )}
             </div>
           </div>
@@ -90,15 +90,15 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
             <div className="flex items-start space-x-2">
               <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-gray-900">{announcement.adresse}</div>
-                <div className="text-gray-500">
+                <div className="text-gray-900 dark:text-white">{announcement.adresse}</div>
+                <div className="text-gray-500 dark:text-gray-400">
                   {announcement.code_postal} {announcement.ville}
                 </div>
                 {announcement.departement && (
-                  <div className="text-gray-500">Département: {announcement.departement}</div>
+                  <div className="text-gray-500 dark:text-gray-400">Département: {announcement.departement}</div>
                 )}
                 {announcement.region && (
-                  <div className="text-gray-500">Région: {announcement.region}</div>
+                  <div className="text-gray-500 dark:text-gray-400">Région: {announcement.region}</div>
                 )}
               </div>
             </div>
@@ -108,16 +108,16 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
             {announcement.date_parution && (
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Parution: {formatDate(announcement.date_parution)}</span>
+                <span className="text-gray-600 dark:text-gray-300">Parution: {formatDate(announcement.date_parution)}</span>
               </div>
             )}
             
             {announcement.numero_parution && (
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">N° {announcement.numero_parution}</span>
+                <span className="text-gray-600 dark:text-gray-300">N° {announcement.numero_parution}</span>
                 {announcement.numero_annonce && (
-                  <span className="text-gray-500">• Annonce {announcement.numero_annonce}</span>
+                  <span className="text-gray-500 dark:text-gray-400">• Annonce {announcement.numero_annonce}</span>
                 )}
               </div>
             )}
@@ -125,14 +125,14 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
             {announcement.capital && (
               <div className="flex items-center space-x-2">
                 <Euro className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Capital: {formatCapital(announcement.capital, announcement.devise)}</span>
+                <span className="text-gray-600 dark:text-gray-300">Capital: {formatCapital(announcement.capital, announcement.devise)}</span>
               </div>
             )}
             
             {announcement.id && (
               <div className="flex items-center space-x-2">
                 <Hash className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600 font-mono text-xs">ID: {announcement.id}</span>
+                <span className="text-gray-600 dark:text-gray-300 font-mono text-xs">ID: {announcement.id}</span>
               </div>
             )}
           </div>
@@ -141,42 +141,42 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
             {announcement.libelle && announcement.libelle !== announcement.categorie && (
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Libellé: {announcement.libelle}</span>
+                <span className="text-gray-600 dark:text-gray-300">Libellé: {announcement.libelle}</span>
               </div>
             )}
             
             {announcement.tribunal && (
               <div className="flex items-center space-x-2">
                 <Scale className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Tribunal: {announcement.tribunal}</span>
+                <span className="text-gray-600 dark:text-gray-300">Tribunal: {announcement.tribunal}</span>
               </div>
             )}
             
             {announcement.date_jugement && (
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Jugement: {formatDate(announcement.date_jugement)}</span>
+                <span className="text-gray-600 dark:text-gray-300">Jugement: {formatDate(announcement.date_jugement)}</span>
               </div>
             )}
           </div>
         </div>
 
         {announcement.activite && (
-          <div className="pt-3 border-t border-gray-100">
-            <p className="text-sm text-gray-600">
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               <span className="font-medium">Activité:</span> {announcement.activite}
             </p>
           </div>
         )}
 
         {announcement.texte && (
-          <div className="pt-3 border-t border-gray-100">
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
             <details className="group">
               <summary className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                 Voir le détail de l'annonce
               </summary>
-              <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+              <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                   {announcement.texte}
                 </p>
               </div>
@@ -185,27 +185,27 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
         )}
 
         {sirenNumber && (
-          <div className="pt-3 border-t border-gray-100">
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
             <a
               href={`https://data.inpi.fr/export/companies?format=pdf&ids=[%22${sirenNumber}%22]`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 focus:ring-2 focus:ring-blue-500 transition-colors"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               Consulter l'avis INPI
-              <span className="ml-2 text-xs text-gray-500">({sirenNumber})</span>
+              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">({sirenNumber})</span>
             </a>
           </div>
         )}
 
-        <div className="pt-3 border-t border-gray-100">
+        <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
           <details className="group">
-            <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
+            <summary className="cursor-pointer text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
               Informations techniques
             </summary>
-            <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600">
+            <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-300">
                 <div>
                   <span className="font-medium">ID Record:</span> {announcement.id}
                 </div>
