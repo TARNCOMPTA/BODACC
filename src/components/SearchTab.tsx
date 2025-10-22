@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { SearchForm } from './SearchForm';
 import { SearchResults } from './SearchResults';
 import { ErrorMessage } from './ErrorMessage';
-import { useBodaccData } from '../hooks/useBodaccSearch';
+import { ProgressBar } from './ProgressBar';
+import { useBodaccData } from '../hooks/useBodaccSearchOptimized';
 import { SearchFilters } from '../types/bodacc';
 
 export function SearchTab() {
@@ -28,8 +29,11 @@ export function SearchTab() {
     totalCount, 
     isLoading, 
     error, 
+    progress,
     loadAnnouncements,
-    clearError 
+    clearError,
+    clearCache,
+    cacheSize
   } = useBodaccData();
 
   const handleApplyFilters = useCallback(() => {
@@ -60,10 +64,33 @@ export function SearchTab() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Annonces BODACC
           </h2>
-          <p className="text-gray-600">
-            Consultez et filtrez les annonces officielles du Bulletin officiel des annonces civiles et commerciales
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-gray-600">
+              Consultez et filtrez les annonces officielles du Bulletin officiel des annonces civiles et commerciales
+            </p>
+            {cacheSize > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500">Cache: {cacheSize} requêtes</span>
+                <button
+                  onClick={clearCache}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Vider
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+        
+        {isLoading && progress > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Chargement en cours...</span>
+              <span className="text-sm text-gray-500">{progress}%</span>
+            </div>
+            <ProgressBar progress={progress} />
+          </div>
+        )}
         
         <SearchForm
           filters={filters}

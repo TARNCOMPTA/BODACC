@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Filter, Calendar } from 'lucide-react';
 import { SearchFilters } from '../types/bodacc';
+import { useDebounce } from '../hooks/useDebounce';
 import { useBodaccCategories } from '../hooks/useBodaccCategories';
 
 // Liste des départements français
@@ -119,6 +120,9 @@ interface SearchFormProps {
 export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading }: SearchFormProps) {
   const { categories: dynamicCategories, subCategories, isLoading: categoriesLoading, isLoadingSubCategories } = useBodaccCategories();
   
+  // Debounce search query to avoid too many API calls
+  const debouncedQuery = useDebounce(filters.query, 500);
+  
   // Protection contre les valeurs undefined pour éviter les warnings React
   const safeCategories = dynamicCategories ?? [];
   const safeSubCategories = subCategories ?? [];
@@ -134,6 +138,12 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
     onApplyFilters();
   };
 
+  // Auto-search when debounced query changes (if there's a query)
+  React.useEffect(() => {
+    if (debouncedQuery && debouncedQuery.length >= 3) {
+      onApplyFilters();
+    }
+  }, [debouncedQuery, onApplyFilters]);
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -154,9 +164,14 @@ export function SearchForm({ filters, onFiltersChange, onApplyFilters, isLoading
                 id="query"
                 value={filters.query || ''}
                 onChange={(e) => onFiltersChange({ ...filters, query: e.target.value })}
-                placeholder="Nom d'entreprise, SIREN, activité..."
+                placeholder="Nom d'entreprise, SIREN, activité... (min. 3 caractères)"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
+              {filters.query && filters.query.length > 0 && filters.query.length < 3 && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Tapez au moins 3 caractères pour déclencher la recherche automatique
+                </p>
+              )}
             </div>
           </div>
           
