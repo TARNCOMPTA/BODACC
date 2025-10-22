@@ -1,30 +1,26 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { Search, BarChart3, Home, CloudSun } from 'lucide-react';
 
-interface TabNavigationProps {
-  activeTab: 'home' | 'search' | 'statistics' | 'weather';
-  onTabChange: (tab: 'home' | 'search' | 'statistics' | 'weather') => void;
-}
-
-export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+export function TabNavigation() {
   const tabs = [
     {
-      id: 'home' as const,
+      path: '/',
       name: 'Accueil',
       icon: Home,
     },
     {
-      id: 'search' as const,
+      path: '/recherche',
       name: 'Recherche annonces',
       icon: Search,
     },
     {
-      id: 'statistics' as const,
+      path: '/statistiques',
       name: 'Statistiques',
       icon: BarChart3,
     },
     {
-      id: 'weather' as const,
+      path: '/meteo',
       name: 'Météo',
       icon: CloudSun,
     },
@@ -37,18 +33,20 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className={`${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+              <NavLink
+                key={tab.path}
+                to={tab.path}
+                className={({ isActive }) =>
+                  `${
+                    isActive
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`
+                }
               >
                 <Icon className="w-4 h-4" />
                 <span>{tab.name}</span>
-              </button>
+              </NavLink>
             );
           })}
         </div>

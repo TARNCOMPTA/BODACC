@@ -1,11 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Search, BarChart3, Scale, Building2, FileText, TrendingUp, Users, Globe, Shield, Clock } from 'lucide-react';
 
-interface HomeTabProps {
-  onTabChange: (tab: 'home' | 'search' | 'statistics' | 'weather') => void;
-}
-
-export function HomeTab({ onTabChange }: HomeTabProps) {
+export function HomeTab() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors" role="main">
       {/* Hero Section */}
@@ -232,23 +229,23 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={() => onTabChange('search')}
+            <Link
+              to="/recherche"
               className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
               aria-label="Accéder à la recherche d'annonces BODACC"
             >
               <Search className="w-5 h-5 mr-2" />
               Rechercher des annonces
-            </button>
-            
-            <button 
-              onClick={() => onTabChange('statistics')}
+            </Link>
+
+            <Link
+              to="/statistiques"
               className="inline-flex items-center px-8 py-4 border border-gray-300 dark:border-gray-600 text-lg font-medium rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg"
               aria-label="Accéder aux statistiques BODACC"
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               Voir les statistiques
-            </button>
+            </Link>
           </div>
         </div>
       </section>
