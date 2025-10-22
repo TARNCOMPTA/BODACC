@@ -5,6 +5,7 @@ import { HomeTab } from './components/HomeTab';
 import { SearchTab } from './components/SearchTab';
 import { StatisticsTab } from './components/StatisticsTab';
 import { WeatherTab } from './components/WeatherTab';
+import { ToastContainer } from './components/ToastContainer';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'statistics' | 'weather'>('home');
@@ -20,6 +21,8 @@ function App() {
         {activeTab === 'statistics' && <StatisticsTab />}
         {activeTab === 'weather' && <WeatherTab />}
       </main>
+      
+      <ToastContainer />
       
       <footer className="bg-white border-t border-gray-200 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
